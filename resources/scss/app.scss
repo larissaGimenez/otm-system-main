@@ -1,0 +1,63 @@
+// ===================================================================
+// 1. FONTES E VARIÁVEIS GLOBAIS
+// ===================================================================
+
+// Importa a fonte Nunito diretamente do Google Fonts
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+
+// Define nossa cor primária personalizada
+$primary: #6f42c1;
+
+// Define o separador do breadcrumb como '>' ANTES de importar o Bootstrap
+$breadcrumb-divider: quote(">");
+
+
+// ===================================================================
+// 2. IMPORTAÇÃO DO BOOTSTRAP
+// O Bootstrap agora será compilado usando nossas variáveis acima
+// ===================================================================
+@import "~bootstrap/scss/bootstrap";
+
+
+// ===================================================================
+// 3. NOSSAS CLASSES GLOBAIS DE TIPOGRAFIA E ESTILO
+// ===================================================================
+
+// Aplica a fonte Nunito a todo o sistema
+body {
+    font-family: 'Nunito', sans-serif;
+}
+
+// Classe para o título principal de cada página
+.title-main {
+    font-size: 1.75rem; // Tamanho do título (h2)
+    font-weight: 700;   // Negrito
+}
+
+// Classe para títulos de seção dentro de uma página
+.title-section {
+    font-size: 1.25rem; // Tamanho do subtítulo (h5)
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #dee2e6; // Linha separadora sutil
+}
+
+// Nossa classe para labels de formulário (mantida e melhorada)
+.form-label-minimal {
+    font-size: 0.7em;
+    font-weight: 700;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+}
+
+// Animação do ícone da welcome page
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0px); }
+}
+.icon-float {
+    animation: float 2s ease-in-out infinite;
+}
