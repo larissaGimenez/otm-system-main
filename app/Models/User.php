@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes; 
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Team;
+use App\Models\ActivityLog;
 
 class User extends Authenticatable
 {
@@ -66,5 +68,15 @@ class User extends Authenticatable
             'field'   => 'Equipe de Campo',
             default   => 'Usuário',
         };
+    }
+
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class)->withTimestamps();
+    }
+
+    public function activityLogs()
+    {
+        return $this->morphMany(ActivityLog::class, 'subject');
     }
 }

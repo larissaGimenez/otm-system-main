@@ -55,17 +55,16 @@
             <div class="px-2 mb-2 small text-uppercase fw-bold text-muted">Gestão</div>
 
             <li class="nav-item mb-1">
-                {{-- MUDANÇA: Adicionada a classe 'collapsed' por padrão --}}
                 <a class="nav-link text-dark dropdown-toggle collapsed" href="#equipesSubmenu" data-bs-toggle="collapse" role="button">
-                    <i class="bi bi-people-fill me-2"></i> Grupos
+                    <i class="bi bi-people-fill me-2"></i> Equipes
                 </a>
                 <div class="collapse" id="equipesSubmenu">
                     <ul class="nav flex-column ps-4 pt-1">
                         <li class="nav-item">
-                            <a href="#" class="nav-link text-dark small py-1">Listar</a>
+                            <a href="{{ route('management.teams.index') }}" class="nav-link text-dark small py-1">Listar</a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link text-dark small py-1">Criar um novo</a>
+                            <a href="{{ route('management.teams.create') }}" class="nav-link text-dark small py-1">Criar um novo</a>
                         </li>
                     </ul>
                 </div>

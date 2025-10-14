@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rules;
@@ -39,7 +42,7 @@ class UserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'role' => ['required', Rule::in(['admin', 'manager', 'staff', 'field'])],
@@ -55,21 +58,29 @@ class UserController extends Controller
             'state' => ['nullable', 'string', 'max:2'],
         ]);
 
-        $dataToSave = $request->all();
-        $dataToSave['password'] = Hash::make($request->password);
-        $dataToSave['cpf'] = preg_replace('/\D/', '', $request->cpf);
-        $dataToSave['phone'] = preg_replace('/\D/', '', $request->phone);
-        $dataToSave['postal_code'] = preg_replace('/\D/', '', $request->postal_code);
+        try {
+            $validatedData['password'] = Hash::make($request->password);
+            $validatedData['cpf'] = preg_replace('/\D/', '', $request->cpf);
+            $validatedData['phone'] = preg_replace('/\D/', '', $request->phone);
+            $validatedData['postal_code'] = preg_replace('/\D/', '', $request->postal_code);
 
-        User::create($dataToSave);
+            User::create($validatedData);
 
-        return redirect()->route('management.users.index')
-                         ->with('success', 'Usuário cadastrado com sucesso.');
+            return redirect()->route('management.users.index')
+                             ->with('success', 'Usuário cadastrado com sucesso.');
+        } catch (\Exception $e) {
+            Log::error('Falha ao criar usuário: ' . $e->getMessage());
+            return redirect()->back()
+                             ->with('error', 'Ocorreu um erro ao cadastrar o usuário. Tente novamente.')
+                             ->withInput();
+        }
     }
 
     public function show(User $user): View
     {
-        return view('users.show', compact('user'));
+        $existingTeamIds = $user->teams->pluck('id');
+        $availableTeams = Team::whereNotIn('id', $existingTeamIds)->orderBy('name')->get();
+        return view('users.show', compact('user', 'availableTeams'));
     }
 
     public function edit(User $user): View
@@ -79,7 +90,6 @@ class UserController extends Controller
 
     public function update(Request $request, User $user): RedirectResponse
     {
-        // A validação continua a mesma
         $validatedData = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
@@ -96,7 +106,6 @@ class UserController extends Controller
             'state' => ['nullable', 'string', 'max:2'],
         ]);
 
-        // O bloco try...catch vai "tentar" executar o código
         try {
             if (!empty($validatedData['password'])) {
                 $validatedData['password'] = Hash::make($validatedData['password']);
@@ -110,20 +119,13 @@ class UserController extends Controller
             
             $user->update($validatedData);
 
-            // Se tudo der certo, redireciona com sucesso
             return redirect()->route('management.users.index')
-                            ->with('success', 'Usuário atualizado com sucesso.');
-
+                             ->with('success', 'Usuário atualizado com sucesso.');
         } catch (\Exception $e) {
-            // Se qualquer erro (Exception) acontecer, o código entra aqui
-
-            // 1. (Opcional, mas recomendado) Salva o erro real no log para você poder depurar
             Log::error('Falha ao atualizar usuário: ' . $e->getMessage());
-
-            // 2. Redireciona o usuário de volta para o formulário com uma mensagem de erro amigável
             return redirect()->back()
-                            ->with('error', 'Ocorreu um erro inesperado ao salvar as alterações. Por favor, tente novamente.')
-                            ->withInput(); // withInput() garante que os dados digitados não sejam perdidos
+                             ->with('error', 'Ocorreu um erro ao salvar as alterações. Tente novamente.')
+                             ->withInput();
         }
     }
 
@@ -134,9 +136,48 @@ class UserController extends Controller
                              ->with('error', 'Você não pode excluir seu próprio usuário.');
         }
 
-        $user->delete();
+        try {
+            $user->delete();
+            return redirect()->route('management.users.index')
+                             ->with('success', 'Usuário excluído com sucesso.');
+        } catch (\Exception $e) {
+            Log::error('Falha ao excluir usuário: ' . $e->getMessage());
+            return redirect()->back()
+                             ->with('error', 'Ocorreu um erro ao excluir o usuário. Tente novamente.');
+        }
+    }
 
-        return redirect()->route('management.users.index')
-                         ->with('success', 'Usuário excluído com sucesso.');
+    public function attachTeams(Request $request, User $user): RedirectResponse
+    {
+        $request->validate([
+            'teams' => ['required', 'array'],
+            'teams.*' => ['exists:teams,id'],
+        ]);
+
+        try {
+            $user->teams()->attach($request->teams);
+            return redirect()->route('management.users.show', $user)
+                            ->with('success', 'Usuário adicionado às equipes com sucesso.');
+        } catch (\Exception $e) {
+            Log::error('Falha ao adicionar usuário a equipes: ' . $e->getMessage());
+
+            return redirect()->route('management.users.show', $user)
+                            ->with('error', 'Ocorreu um erro. Tente novamente.');
+        }
+    }
+
+    public function detachTeam(Request $request, User $user, Team $team): RedirectResponse
+    {
+        try {
+            $user->teams()->detach($team->id);
+   
+            return redirect()->route('management.users.show', $user)
+                            ->with('success', "Usuário removido da equipe '{$team->name}' com sucesso.");
+        } catch (\Exception $e) {
+            Log::error("Falha ao remover usuário da equipe '{$team->name}': " . $e->getMessage());
+
+            return redirect()->route('management.users.show', $user)
+                            ->with('error', 'Ocorreu um erro. Tente novamente.');
+        }
     }
 }
