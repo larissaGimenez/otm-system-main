@@ -23,10 +23,10 @@
                 <div class="collapse" id="pdvSubmenu">
                     <ul class="nav flex-column ps-4 pt-1">
                         <li class="nav-item">
-                            <a href="#" class="nav-link text-dark small py-1">Listar</a>
+                            <a href="{{ route('pdvs.index') }}" class="nav-link text-dark small py-1">Listar</a>
                         </li>
                         <li class="nav-item">
-                            <a href="#" class="nav-link text-dark small py-1">Criar um novo</a>
+                            <a href="{{ route('pdvs.create') }}" class="nav-link text-dark small py-1">Criar um novo</a>
                         </li>
                     </ul>
                 </div>
@@ -92,6 +92,33 @@
                     </ul>
                 </div>
             </li>
+
+            {{-- ===== NOVA SEÇÃO: CONFIGURAÇÕES ===== --}}
+            <hr class="text-secondary-emphasis">
+            <div class="px-2 mb-2 small text-uppercase fw-bold text-muted">Configurações</div>
+
+            <li class="nav-item mb-1">
+                <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('equipments.*') ? '' : 'collapsed' }} {{ request()->routeIs('equipments.*') ? 'active text-white' : '' }}"
+                   style="{{ request()->routeIs('equipments.*') ? 'background-color: var(--bs-primary);' : '' }}"
+                   href="#equipamentosSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('equipments.*') ? 'true' : 'false' }}">
+                    <i class="bi bi-hdd-stack-fill me-2"></i> Equipamentos
+                </a>
+                <div class="collapse {{ request()->routeIs('equipments.*') ? 'show' : '' }}" id="equipamentosSubmenu">
+                    <ul class="nav flex-column ps-4 pt-1">
+                        <li class="nav-item">
+                            <a href="{{ route('equipments.index') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('equipments.index') ? 'fw-bold' : '' }}">
+                                Listar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('equipments.create') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('equipments.create') ? 'fw-bold' : '' }}">
+                                Criar um novo
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            {{-- ===== FIM CONFIGURAÇÕES ===== --}}
         @endif
     </ul>
 

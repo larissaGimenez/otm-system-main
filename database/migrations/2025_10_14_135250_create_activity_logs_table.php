@@ -9,12 +9,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('activity_logs', function (Blueprint $table) {
-            $table->id();
-            $table->uuidMorphs('subject'); 
+
+            $table->uuidPrimary();          
+            $table->uuidMorphs('subject');   
+            $table->belongsToUuid('causer', 'users', true, 'set null'); 
             $table->string('description');
-            $table->foreignUuid('causer_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->string('causer_name'); 
+            $table->string('causer_name');
             $table->timestamps();
+
+            // Índices 
+            $table->index(['causer_id', 'created_at']);
+            $table->comment('Application activity/audit logs');
+            
         });
     }
 

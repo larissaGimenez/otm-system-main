@@ -1,46 +1,47 @@
 <x-list-layout 
-    :collection="$users"
-    :searchRoute="route('management.users.index')"
-    :createRoute="route('management.users.create')"
-    createText="Criar Novo Usuário"
-    searchPlaceholder="Buscar por nome, e-mail ou telefone..."
-    deleteModalText="Tem certeza que deseja excluir este usuário?">
+    :collection="$pdvs"
+    :searchRoute="route('pdvs.index')"
+    :createRoute="route('pdvs.create')"
+    createText="Novo Ponto de Venda"
+    searchPlaceholder="Buscar por nome, tipo, status ou rua..."
+    deleteModalText="Tem certeza que deseja excluir este Ponto de Venda?">
 
+    {{-- Título principal da página --}}
     <x-slot:header>
-        Gerenciar Usuários
+        Gerenciar Pontos de Venda
     </x-slot:header>
 
+    {{-- Cabeçalho da tabela para a visualização em desktop --}}
     <x-slot:tableHeader>
         <tr class="text-muted small">
-            <th scope="col" class="py-3">Nome</th>
-            <th scope="col" class="py-3">Cargo</th>
-            <th scope="col" class="py-3">E-mail</th>
-            <th scope="col" class="py-3">Telefone</th>
-            <th scope="col" class="py-3">Status</th>
-            <th scope="col" class="py-3 text-end">Ações</th>
+            <th scope="col" class="py-3">NOME DO PDV</th>
+            <th scope="col" class="py-3">TIPO</th>
+            <th scope="col" class="py-3">ENDEREÇO</th>
+            <th scope="col" class="py-3">STATUS</th>
+            <th scope="col" class="py-3 text-end">AÇÕES</th>
         </tr>
     </x-slot:tableHeader>
 
-    {{-- Linhas da Tabela (Desktop) --}}
-    @foreach ($users as $user)
-        <tr class="border-bottom" data-href="{{ route('management.users.show', $user) }}">
-            <td class="py-2">{{ $user->name }}</td>
-            <td class="py-2">{{ $user->getRoleName() }}</td>
-            <td class="py-2">{{ $user->email }}</td>
-            <td class="py-2">{{ $user->phone ?? 'N/A' }}</td>
-            <td class="py-2">
-                <span class="badge rounded-pill {{ $user->trashed() ? 'bg-danger' : 'bg-success' }}">
-                    {{ $user->trashed() ? 'Inativo' : 'Ativo' }}
+    {{-- Loop para gerar as linhas da tabela (visualização em desktop) --}}
+    @foreach ($pdvs as $pdv)
+        <tr class="border-bottom" data-href="{{ route('pdvs.show', $pdv) }}">
+            <td class="py-3">{{ $pdv->name }}</td>
+            <td class="py-3">{{ $pdv->type }}</td>
+            <td class="py-3">{{ $pdv->street ?? 'Endereço não informado' }}{{ $pdv->number ? ', ' . $pdv->number : '' }}</td>
+            <td class="py-3">
+                {{-- Exemplo de lógica de status. Ajuste as classes de cor conforme seus status --}}
+                <span class="badge rounded-pill {{ $pdv->status === 'Ativo' ? 'bg-success' : 'bg-secondary' }}">
+                    {{ $pdv->status }}
                 </span>
             </td>
-            <td class="py-2 text-end">
+            <td class="py-3 text-end">
                 <div class="btn-group btn-group-sm" role="group">
-                    <a href="{{ route('management.users.edit', $user) }}" class="btn btn-outline-primary" title="Editar">
+                    <a href="{{ route('pdvs.edit', $pdv) }}" class="btn btn-outline-primary" title="Editar">
                         <i class="bi bi-pencil-fill"></i>
                     </a>
                     <button type="button" class="btn btn-outline-danger" 
                             data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                            data-action="{{ route('management.users.destroy', $user) }}" 
+                            data-action="{{ route('pdvs.destroy', $pdv) }}" 
                             title="Excluir">
                         <i class="bi bi-trash-fill"></i>
                     </button>
@@ -49,36 +50,37 @@
         </tr>
     @endforeach
 
-    {{-- Lista de Cards (Mobile) --}}
+    {{-- Loop para gerar os cards (visualização em mobile) --}}
     <x-slot:mobileList>
-        @foreach ($users as $user)
-            <a href="{{ route('management.users.show', $user) }}" class="text-decoration-none text-dark">
+        @foreach ($pdvs as $pdv)
+            <a href="{{ route('pdvs.show', $pdv) }}" class="text-decoration-none text-dark">
                 <div class="card mb-3">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
-                                <h5 class="card-title mb-1">{{ $user->name }}</h5>
-                                <h6 class="card-subtitle mb-2 text-muted">{{ $user->getRoleName() }}</h6>
+                                <h5 class="card-title mb-1">{{ $pdv->name }}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ $pdv->type }}</h6>
                             </div>
-                            <span class="badge rounded-pill {{ $user->trashed() ? 'bg-danger' : 'bg-success' }}">
-                                {{ $user->trashed() ? 'Inativo' : 'Ativo' }}
+                            <span class="badge rounded-pill {{ $pdv->status === 'Ativo' ? 'bg-success' : 'bg-secondary' }}">
+                                {{ $pdv->status }}
                             </span>
                         </div>
                         <hr class="my-2">
-                        <p class="card-text small mb-1"><strong>E-mail:</strong> {{ $user->email }}</p>
-                        <p class="card-text small"><strong>Telefone:</strong> {{ $user->phone ?? 'N/A' }}</p>
+                        <p class="card-text small mb-1">
+                            <strong>Endereço:</strong> {{ $pdv->street ?? 'Não informado' }}{{ $pdv->number ? ', ' . $pdv->number : '' }}
+                        </p>
                     </div>
                 </div>
             </a>
         @endforeach
     </x-slot:mobileList>
 
-    {{-- Mensagem de "Nenhum Resultado" --}}
+    {{-- Conteúdo para quando a busca não retorna resultados ou a tabela está vazia --}}
     <x-slot:emptyState>
         <div class="text-center py-5">
-            <h5>Nenhum usuário encontrado.</h5>
+            <h5>Nenhum Ponto de Venda encontrado.</h5>
             @if(request('search'))
-                <a href="{{ route('management.users.index') }}" class="d-block mt-2 small">Limpar busca</a>
+                <a href="{{ route('pdvs.index') }}" class="d-block mt-2 small">Limpar busca</a>
             @endif
         </div>
     </x-slot:emptyState>

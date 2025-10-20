@@ -6,11 +6,13 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ConfiguracaoController;
 use App\Http\Controllers\Migration\ClienteMigracaoController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\CondominiumController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\PdvController;
 use App\Http\Controllers\RequestController;
+use App\Http\Controllers\EquipmentController;
+use App\Http\Controllers\ExternalIdController;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,6 +50,46 @@ Route::middleware('auth')->group(function () {
         Route::put('/{request}', [RequestController::class, 'update'])->name('update');
         Route::delete('/{request}', [RequestController::class, 'destroy'])->name('destroy');
     });
+
+    // CRUD de Pontos de Venda (PDV)
+    Route::prefix('pontos-de-venda')->name('pdvs.')->group(function () {
+        Route::get('/', [PdvController::class, 'index'])->name('index');
+        Route::get('/criar', [PdvController::class, 'create'])->name('create');
+        Route::post('/', [PdvController::class, 'store'])->name('store');
+        Route::get('/{pdv}', [PdvController::class, 'show'])->name('show');
+        Route::get('/{pdv}/editar', [PdvController::class, 'edit'])->name('edit');
+        Route::put('/{pdv}', [PdvController::class, 'update'])->name('update');
+        Route::delete('/{pdv}', [PdvController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::post('/pdvs/{pdv}/media', [PdvController::class, 'addMedia'])->name('pdvs.media.store');
+    Route::delete('/pdvs/{pdv}/media/{type}/{index}', [PdvController::class, 'removeMedia'])
+        ->whereIn('type', ['photo', 'video'])
+        ->name('pdvs.media.destroy');
+
+    // CRUD de Equipamentos
+    Route::prefix('equipamentos')->name('equipments.')->group(function () {
+        Route::get('/', [EquipmentController::class, 'index'])->name('index');
+        Route::get('/criar', [EquipmentController::class, 'create'])->name('create');
+        Route::post('/', [EquipmentController::class, 'store'])->name('store');
+        Route::get('/{equipment}', [EquipmentController::class, 'show'])->name('show');
+        Route::get('/{equipment}/editar', [EquipmentController::class, 'edit'])->name('edit');
+        Route::put('/{equipment}', [EquipmentController::class, 'update'])->name('update');
+        Route::delete('/{equipment}', [EquipmentController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::post('/equipments/{equipment}/photos', [EquipmentController::class, 'addPhotos'])
+        ->name('equipments.photos.store');
+    Route::delete('/equipments/{equipment}/photos/{index}', [EquipmentController::class, 'removePhoto'])
+     ->name('equipments.photos.destroy');
+
+    Route::prefix('pontos-de-venda/{pdv}/equipamentos')->name('pdvs.equipments.')->group(function () {
+        Route::post('/', [PdvController::class, 'attachEquipment'])->name('attach');
+        Route::delete('/{equipment}', [PdvController::class, 'detachEquipment'])->name('detach');
+    });
+
+    Route::resource('external-ids', ExternalIdController::class)
+    ->only(['index','store','update','destroy']);
 });
 
 // Rotas para a equipe interna (staff, manager, admin)
@@ -120,6 +162,15 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         Route::put('/{company}', [CompanyController::class, 'update'])->name('update');
         Route::delete('/{company}', [CompanyController::class, 'destroy'])->name('destroy');
     });
+
+    Route::resource('condominiums', CondominiumController::class);
+
+    Route::post('condominiums/{condominium}/contacts', [CondominiumController::class, 'storeContact'])
+        ->name('condominiums.contacts.store');
+
+    Route::delete('condominiums/{condominium}/contacts/{contact}', [CondominiumController::class, 'destroyContact'])
+        ->name('condominiums.contacts.destroy');
+
 });
 
 /*
