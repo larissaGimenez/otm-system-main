@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Str;
 
 class TeamController extends Controller
 {
@@ -47,6 +48,8 @@ class TeamController extends Controller
             'users.*' => ['exists:users,id'], 
         ]);
 
+        $validatedData['slug'] = Str::slug($validatedData['name']);
+
         try {
             DB::transaction(function () use ($validatedData, $request) {
                 $team = Team::create($validatedData);
@@ -68,6 +71,8 @@ class TeamController extends Controller
 
     public function show(Team $team): View
     {
+        $team->load('users');
+
         $existingUserIds = $team->users->pluck('id');
         $availableUsers = User::whereNotIn('id', $existingUserIds)->orderBy('name')->get();
 

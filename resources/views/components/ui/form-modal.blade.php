@@ -37,12 +37,15 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                    
-                    <button type="submit" :disabled="submitting" class="btn btn-primary btn-sm d-inline-flex align-items-center">
-                        <span x-show="submitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        <span x-text="submitting ? 'Salvando...' : '{{ $submitText }}'"></span>
-                    </button>
+                    @if (isset($footer))
+                        {{ $footer }}
+                    @else
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" :disabled="submitting" class="btn btn-primary btn-sm d-inline-flex align-items-center">
+                            <span x-show="submitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            <span x-text="submitting ? 'Salvando...' : '{{ $submitText }}'"></span>
+                        </button>
+                    @endif
                 </div>
             </form>
         </div>

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('description')->nullable();
 
             // Relacionamento com áreas
-            $table->belongsToUuid('area');     
+            $table->foreignUuid('area_id')->nullable()->constrained('areas')->nullOnDelete();     
 
             // Status (Enum)
             $table->enum('status', array_column(TeamStatus::cases(), 'value'))

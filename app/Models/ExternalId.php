@@ -22,7 +22,7 @@ class ExternalId extends Model
 
     public function scopeForItem($query, string $itemUuid)
     {
-        return $query->where('item_uuid', $itemUuid);
+        return $query->where('item_id', $itemUuid);
     }
 
     public function scopeForSystem($query, string $systemName)

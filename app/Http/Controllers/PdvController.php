@@ -5,6 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Pdv;
 use App\Models\Equipment;
 use App\Models\ExternalId;
+
+use App\Enums\Pdv\PdvStatus;
+use App\Enums\Pdv\PdvType;
+
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
@@ -37,7 +42,10 @@ class PdvController extends Controller
 
     public function create(): View
     {
-        return view('pdvs.create');
+        return view('pdvs.create', [
+            'statuses' => PdvStatus::cases(),
+            'types'    => PdvType::cases(),
+        ]);
     }
 
     public function store(Request $request): RedirectResponse
@@ -45,8 +53,8 @@ class PdvController extends Controller
         $validatedData = $request->validate([
             'name'        => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')],
             'description' => ['nullable', 'string'],
-            'type'        => ['required', 'string', 'max:255'],
-            'status'      => ['required', 'string', 'max:255'],
+            'type'        => ['required', Rule::in(array_column(PdvType::cases(), 'value'))],
+            'status'      => ['required', Rule::in(array_column(PdvStatus::cases(), 'value'))],
             'street'      => ['nullable', 'string', 'max:255'],
             'number'      => ['nullable', 'string', 'max:50'],
             'complement'  => ['nullable', 'string', 'max:255'],
@@ -75,6 +83,7 @@ class PdvController extends Controller
                 $validatedData['videos'] = $videoPaths;
             }
 
+            $validatedData['slug'] = Str::slug($validatedData['name']);
             Pdv::create($validatedData);
 
             return redirect()
@@ -82,8 +91,12 @@ class PdvController extends Controller
                 ->with('success', 'Ponto de Venda cadastrado com sucesso.');
         } catch (\Throwable $e) {
             Log::error('Falha ao criar PDV: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            $errorMessage = app()->environment('local')
+                ? 'Erro: ' . $e->getMessage()
+                : 'Ocorreu um erro ao cadastrar o Ponto de Venda. Tente novamente.';
+
             return back()
-                ->with('error', 'Ocorreu um erro ao cadastrar o Ponto de Venda. Tente novamente.')
+                ->with('error', $errorMessage)
                 ->withInput();
         }
     }

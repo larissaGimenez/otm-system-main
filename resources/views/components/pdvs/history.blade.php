@@ -3,16 +3,7 @@
 ])
 
 @php
-    // NOTA IMPORTANTE:
-    // A melhor maneira de implementar histórico no Laravel é usando um pacote
-    // como o 'spatie/laravel-activitylog'. O código abaixo simula os dados
-    // que esse tipo de pacote geraria. Quando você implementar o backend,
-    // a única coisa que precisará mudar é a origem da variável $activities.
-
-    // Futuramente, seu código real seria algo assim:
-    // $activities = \Spatie\Activitylog\Models\Activity::forSubject($pdv)->latest()->get();
-    
-    // Por enquanto, usamos dados de exemplo (mock):
+    // Os dados de exemplo continuam os mesmos
     $mockActivities = [
         [
             'description' => 'O status foi alterado de <strong>Ativo</strong> para <strong>Inativo</strong>.',
@@ -37,16 +28,12 @@
         ]
     ];
 
-    // Convertemos o array de exemplo em uma coleção para ser compatível
-    $activities = collect($mockActivities)->map(function ($item) {
-        $item['timestamp'] = is_string($item['timestamp']) ? \Carbon\Carbon::parse($item['timestamp']) : $item['timestamp'];
-        return $item;
-    });
+    // A CORREÇÃO ESTÁ AQUI
+    // Convertemos cada item do array em um objeto (stdClass).
+    // Isso garante a compatibilidade com o nosso `activity-log-panel` atualizado.
+    $activities = collect($mockActivities)->map(fn($item) => (object)$item);
 
 @endphp
 
-{{-- 
-    Chama o painel de apresentação genérico, passando os dados
-    (neste caso, os dados de exemplo que acabamos de criar).
---}}
-<x-ui.activity-log-panel :records="$activities" />
+{{-- A chamada ao painel de apresentação continua a mesma --}}
+<x-ui.activity-log-panel title="Histórico do PDV" :records="$activities" />

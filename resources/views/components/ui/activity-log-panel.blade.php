@@ -1,6 +1,6 @@
 @props([
-    'title' => 'Histórico de Atividades',
-    'records' => [], // Espera uma coleção de itens de log
+    'title' => 'Logs de Atividade',
+    'records' => [],
 ])
 
 <div class="card border-0 shadow-sm">
@@ -9,33 +9,25 @@
             {{ $title }}
         </h6>
 
-        @if ($records->isEmpty())
-            <div class="text-center text-muted py-5">
-                <i class="bi bi-clock-history fs-2 d-block mb-2"></i>
-                <p>Nenhuma atividade registrada para este item ainda.</p>
+        @forelse ($records as $record)
+            <div class="d-flex align-items-start mb-3">
+                <div class="me-3">
+                    {{-- A sintaxe de objeto é mais robusta e compatível com Models --}}
+                    <i class="bi {{ $record->icon ?? 'bi-info-circle' }} fs-4 {{ $record->color ?? 'text-muted' }}"></i>
+                </div>
+                <div>
+                    {{-- Usamos {!! !!} para renderizar o HTML (ex: <strong>) na descrição --}}
+                    <p class="mb-0 small">{!! $record->description !!}</p>
+                    <small class="text-muted">
+                        {{-- Usamos optional() para evitar erros se o timestamp ou causer forem nulos --}}
+                        {{ optional($record->timestamp)->diffForHumans() }} por {{ $record->causer ?? 'Sistema' }}
+                    </small>
+                </div>
             </div>
-        @else
-            <ul class="list-group list-group-flush">
-                @foreach ($records as $record)
-                    <li class="list-group-item px-0 d-flex">
-                        {{-- Ícone do Evento --}}
-                        <div class="me-3">
-                            <i class="{{ $record['icon'] ?? 'bi-info-circle' }} fs-5 {{ $record['color'] ?? 'text-muted' }}"></i>
-                        </div>
-                        
-                        {{-- Descrição e Data do Evento --}}
-                        <div>
-                            <div class="mb-1">{!! $record['description'] !!}</div>
-                            <small class="text-muted">
-                                {{ $record['timestamp']->format('d/m/Y \à\s H:i') }}
-                                @if(isset($record['causer']))
-                                    por {{ $record['causer'] }}
-                                @endif
-                            </small>
-                        </div>
-                    </li>
-                @endforeach
-            </ul>
-        @endif
+        @empty
+            <div class="text-center text-muted py-3">
+                Nenhuma atividade registrada.
+            </div>
+        @endforelse
     </div>
 </div>

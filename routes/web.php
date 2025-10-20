@@ -13,6 +13,7 @@ use App\Http\Controllers\PdvController;
 use App\Http\Controllers\RequestController;
 use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\ExternalIdController;
+use App\Http\Controllers\AreaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -88,6 +89,22 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('external-ids', ExternalIdController::class)
     ->only(['index','store','update','destroy']);
+
+    Route::prefix('areas')->name('areas.')->group(function () {
+        Route::get('/', [AreaController::class, 'index'])->name('index');
+        Route::get('/criar', [AreaController::class, 'create'])->name('create');
+        Route::post('/', [AreaController::class, 'store'])->name('store');
+        Route::get('/{area}', [AreaController::class, 'show'])->name('show');
+        Route::get('/{area}/editar', [AreaController::class, 'edit'])->name('edit');
+        Route::put('/{area}', [AreaController::class, 'update'])->name('update');
+        Route::delete('/{area}', [AreaController::class, 'destroy'])->name('destroy');
+
+        // Rotas para associação de Equipes (Teams) a uma Área
+        Route::prefix('/{area}/teams')->name('teams.')->group(function () {
+            Route::post('/', [AreaController::class, 'attachTeams'])->name('attach');
+            Route::patch('/{team}', [AreaController::class, 'detachTeam'])->name('detach');
+        });
+    });
 });
 
 // Rotas para a equipe interna (staff, manager, admin)
@@ -129,8 +146,8 @@ Route::middleware(['auth', 'role:admin,manager'])->prefix('management')->name('m
         Route::get('/{team}/editar', [TeamController::class, 'edit'])->name('edit');
         Route::put('/{team}', [TeamController::class, 'update'])->name('update');
         Route::delete('/{team}', [TeamController::class, 'destroy'])->name('destroy');
-        Route::post('/{team}/members', [TeamController::class, 'attachUsers'])->name('attachUsers');
-        Route::delete('/{team}/members/{user}', [TeamController::class, 'removeUser'])->name('removeUser');
+        Route::post('/{team}/users', [TeamController::class, 'attachUsers'])->name('users.attach');
+        Route::delete('/{team}/users/{user}', [TeamController::class, 'removeUser'])->name('users.remove');
     });
 
     // CRUD de Pontos de Venda (PDV)
