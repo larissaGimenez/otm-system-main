@@ -9,6 +9,9 @@ use App\Enums\Request\RequestStatus;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('requests', function (Blueprint $table) {
@@ -27,27 +30,35 @@ return new class extends Migration
 
             $table->enum('status', array_column(RequestStatus::cases(), 'value'))
                   ->default(RequestStatus::OPEN->value);
+            
+            // Área (Obrigatório): Pertence a uma Área. Se a Área for deletada, impede a exclusão.
+            $table->foreignUuid('area_id')
+                  ->constrained('areas')
+                  ->restrictOnDelete(); 
 
-            // Relacionamentos
-            $table->belongsToUuid('area');                      // OBRIGATÓRIO
-            $table->belongsToUuid('team', 'teams', true, 'set null'); // OPCIONAL (pode ser null)
-            $table->belongsToUuid('requester', 'users');        // quem abriu
+            // Requester (Obrigatório): Quem abriu o chamado. Se o User for deletado, define como NULL.
+            $table->foreignUuid('requester_id')
+                  ->constrained('users')
+                  ->nullOnDelete(); 
 
-            // Prazos
             $table->dateTime('due_at')->nullable();
 
             $table->timestamps();
             $table->softDeletes();
 
-            // Índices úteis
+            // Índices 
             $table->index(['status', 'priority', 'type']);
-            $table->index(['area_id', 'team_id']);
+            $table->index('area_id'); 
+            $table->index('requester_id'); 
             $table->index('created_at');
 
-            $table->comment('Chamados internos: área obrigatória, time opcional, múltiplos responsáveis via pivot.');
+            $table->comment('Chamados internos: área e requisitante obrigatórios, múltiplos responsáveis via pivot.');
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('requests');
