@@ -63,9 +63,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::post('/pdvs/{pdv}/media', [PdvController::class, 'addMedia'])->name('pdvs.media.store');
-    Route::delete('/pdvs/{pdv}/media/{type}/{index}', [PdvController::class, 'removeMedia'])
-        ->whereIn('type', ['photo', 'video'])
-        ->name('pdvs.media.destroy');
+    Route::delete('/pdvs/{pdv}/media/{type}/{index}', [PdvController::class, 'destroyMedia'])->name('pdvs.media.destroy');
 
     // CRUD de Equipamentos
     Route::prefix('equipamentos')->name('equipments.')->group(function () {

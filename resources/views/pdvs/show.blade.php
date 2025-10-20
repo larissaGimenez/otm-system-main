@@ -14,6 +14,8 @@
 
             <hr>
 
+            {{-- IMPORTANTE: Seu componente de navegação precisa gerar os botões com o atributo data-bs-target correspondente aos IDs abaixo. --}}
+            {{-- Ex: <button data-bs-target="#gallery-tab-pane">...</button> --}}
             <x-pdvs.tab-navigation :pdv="$pdv" :externalIdCount="$externalIdRecords->count()" />
 
             <div x-data class="tab-content" id="pdvs-details-tabContent">
@@ -63,6 +65,17 @@
                     modal.show();
                 }
             @endif
+
+            const hash = window.location.hash;
+
+            if (hash) {
+                const tabTrigger = document.querySelector(`button[data-bs-target="${hash}"]`);
+
+                if (tabTrigger) {
+                    const tab = new bootstrap.Tab(tabTrigger);
+                    tab.show();
+                }
+            }
         });
     </script>
 </x-slot>

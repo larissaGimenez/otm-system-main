@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class PdvController extends Controller
 {
@@ -218,5 +219,77 @@ class PdvController extends Controller
 
             return back()->with('success', 'Equipamento desassociado com sucesso.');
         });
+    }
+
+    public function addMedia(Request $request, Pdv $pdv): RedirectResponse
+    {
+        $validatedData = $request->validate([
+            'photos'   => ['nullable', 'array'],
+            'photos.*' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'videos'   => ['nullable', 'array'],
+            'videos.*' => ['mimetypes:video/mp4,video/avi,video/mpeg', 'max:20480'],
+        ]);
+
+        try {
+            // Pega os caminhos das fotos existentes ou um array vazio
+            $photoPaths = $pdv->photos ?? [];
+            if ($request->hasFile('photos')) {
+                foreach ($request->file('photos') as $photo) {
+                    $photoPaths[] = $photo->store('pdv_photos', 'public');
+                }
+            }
+
+            // Pega os caminhos dos vídeos existentes ou um array vazio
+            $videoPaths = $pdv->videos ?? [];
+            if ($request->hasFile('videos')) {
+                foreach ($request->file('videos') as $video) {
+                    $videoPaths[] = $video->store('pdv_videos', 'public');
+                }
+            }
+
+            // Atualiza o PDV com os arrays de mídia combinados
+            $pdv->update([
+                'photos' => $photoPaths,
+                'videos' => $videoPaths,
+            ]);
+
+            return back()->with('success', 'Mídia adicionada com sucesso!');
+
+        } catch (\Throwable $e) {
+            Log::error('Falha ao adicionar mídia ao PDV: ' . $e->getMessage());
+            return back()->with('error', 'Ocorreu um erro ao enviar a mídia. Tente novamente.');
+        }
+    }
+
+    /**
+     * Remove uma mídia específica (foto ou vídeo) de um PDV.
+     */
+    public function destroyMedia(Pdv $pdv, string $type, int $index): RedirectResponse
+    {
+        try {
+            $mediaArray = $pdv->$type ?? [];
+
+            if (isset($mediaArray[$index])) {
+                // 1. Pega o caminho do arquivo para deletar do disco
+                $filePathToDelete = $mediaArray[$index];
+
+                // 2. Remove o item do array
+                unset($mediaArray[$index]);
+
+                // 3. Deleta o arquivo do armazenamento (storage/app/public/...)
+                Storage::disk('public')->delete($filePathToDelete);
+
+                // 4. Atualiza o PDV com o novo array (com índices reorganizados)
+                $pdv->update([$type => array_values($mediaArray)]);
+
+                return back()->with('success', 'Mídia removida com sucesso.');
+            }
+
+            return back()->with('error', 'Mídia não encontrada para remoção.');
+
+        } catch (\Throwable $e) {
+            Log::error('Falha ao remover mídia do PDV: ' . $e->getMessage());
+            return back()->with('error', 'Ocorreu um erro ao remover a mídia. Tente novamente.');
+        }
     }
 }
