@@ -24,4 +24,5 @@ return Application::configure(basePath: dirname(__DIR__))
     
     ->withProviders([
         App\Providers\EventServiceProvider::class,
+        App\Providers\AuthServiceProvider::class,
     ])->create();
