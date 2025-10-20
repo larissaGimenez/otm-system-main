@@ -23,4 +23,9 @@ class Area extends Model
     {
         return $this->hasMany(Team::class);
     }
+
+    public function requests(): HasMany
+    {
+        return $this->hasMany(Request::class);
+    }
 }
