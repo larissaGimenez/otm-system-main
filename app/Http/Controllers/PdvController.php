@@ -52,6 +52,7 @@ class PdvController extends Controller
     {
         $validatedData = $request->validate([
             'name'        => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')],
+            'cnpj'        => ['nullable', 'string', 'size:14', 'unique:pdvs,cnpj'],
             'description' => ['nullable', 'string'],
             'type'        => ['required', Rule::in(array_column(PdvType::cases(), 'value'))],
             'status'      => ['required', Rule::in(array_column(PdvStatus::cases(), 'value'))],
@@ -121,16 +122,21 @@ class PdvController extends Controller
 
     public function edit(Pdv $pdv): View
     {
-        return view('pdvs.edit', compact('pdv'));
+        return view('pdvs.edit', [
+            'pdv'      => $pdv,
+            'statuses' => PdvStatus::cases(),
+            'types'    => PdvType::cases(),
+        ]);
     }
 
     public function update(Request $request, Pdv $pdv): RedirectResponse
     {
         $validatedData = $request->validate([
             'name'        => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')->ignore($pdv->id)],
+            'cnpj'       => ['nullable', 'string', 'size:14', 'unique:pdvs,cnpj,' . $pdv->id],
             'description' => ['nullable', 'string'],
-            'type'        => ['required', 'string', 'max:255'],
-            'status'      => ['required', 'string', 'max:255'],
+            'type'        => ['required', Rule::in(array_column(PdvType::cases(), 'value'))], 
+            'status'      => ['required', Rule::in(array_column(PdvStatus::cases(), 'value'))],
             'street'      => ['nullable', 'string', 'max:255'],
             'number'      => ['nullable', 'string', 'max:50'],
             'complement'  => ['nullable', 'string', 'max:255'],

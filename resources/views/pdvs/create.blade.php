@@ -11,7 +11,6 @@
     <form method="POST" action="{{ route('pdvs.store') }}" enctype="multipart/form-data" class="bg-white p-4 rounded shadow-sm">
         @csrf
 
-        {{-- Exibe os erros de validação no topo do formulário --}}
         @if ($errors->any())
             <div class="alert alert-danger mb-4">
                 <strong>Opa!</strong> Algo deu errado. Por favor, verifique os campos abaixo.
@@ -20,22 +19,31 @@
         
         <h5 class="mb-3 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">Dados do PDV</h5>
         <div class="row">
-            <div class="col-md-12 mb-3">
+            {{-- CAMPO NOME --}}
+            <div class="col-md-7 mb-3">
                 <div class="form-floating">
                     <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" placeholder="Nome do PDV" required>
                     <label for="name">Nome do PDV</label>
                 </div>
             </div>
+            {{-- NOVO CAMPO CNPJ --}}
+            <div class="col-md-5 mb-3">
+                <div class="form-floating">
+                    <input type="text" class="form-control @error('cnpj') is-invalid @enderror" id="cnpj" name="cnpj" value="{{ old('cnpj') }}" placeholder="CNPJ (somente números)" maxlength="14">
+                    <label for="cnpj">CNPJ (somente números)</label>
+                    @error('cnpj') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
         </div>
+
         <div class="row">
-            {{-- CAMPO TIPO (AGORA UM SELECT) --}}
+            {{-- CAMPO TIPO --}}
             <div class="col-md-6 mb-3">
                 <div class="form-floating">
                     <select class="form-select @error('type') is-invalid @enderror" id="type" name="type" required>
                         <option value="" disabled selected>Selecione um tipo...</option>
                         @foreach ($types as $type)
                             <option value="{{ $type->value }}" {{ old('type') == $type->value ? 'selected' : '' }}>
-                                {{-- CORREÇÃO AQUI --}}
                                 {{ $type->getLabel() }}
                             </option>
                         @endforeach
@@ -43,14 +51,13 @@
                     <label for="type">Tipo</label>
                 </div>
             </div>
-            {{-- CAMPO STATUS (AGORA UM SELECT) --}}
+            {{-- CAMPO STATUS --}}
             <div class="col-md-6 mb-3">
                 <div class="form-floating">
                     <select class="form-select @error('status') is-invalid @enderror" id="status" name="status" required>
                         <option value="" disabled selected>Selecione um status...</option>
                         @foreach ($statuses as $status)
                             <option value="{{ $status->value }}" {{ old('status') == $status->value ? 'selected' : '' }}>
-                                {{-- CORREÇÃO AQUI --}}
                                 {{ $status->getLabel() }}
                             </option>
                         @endforeach

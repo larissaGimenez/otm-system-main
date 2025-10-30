@@ -18,6 +18,7 @@ class Pdv extends Model
     protected $fillable = [
         'name',
         'slug',
+        'cnpj',
         'description',
         'type',
         'status',

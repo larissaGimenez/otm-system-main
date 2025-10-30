@@ -11,6 +11,7 @@
             'title' => 'Informações Gerais',
             'rows' => [
                 ['label' => 'Nome', 'value' => $pdv->name],
+                ['label' => 'CNPJ', 'value' => $pdv->cnpj],
                 ['label' => 'Tipo', 'value' => $pdv->type],
                 ['label' => 'Status', 'value' => $pdv->status],
                 ['label' => 'Criado em', 'value' => $pdv->created_at->format('d/m/Y \à\s H:i')],

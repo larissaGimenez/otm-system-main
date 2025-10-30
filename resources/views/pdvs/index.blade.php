@@ -3,7 +3,7 @@
     :searchRoute="route('pdvs.index')"
     :createRoute="route('pdvs.create')"
     createText="Novo Ponto de Venda"
-    searchPlaceholder="Buscar por nome, tipo, status ou rua..."
+    searchPlaceholder="Buscar por nome, CNPJ, tipo, status..."
     deleteModalText="Tem certeza que deseja excluir este Ponto de Venda?">
 
     {{-- Título principal da página --}}
@@ -14,7 +14,7 @@
     {{-- Cabeçalho da tabela para a visualização em desktop --}}
     <x-slot:tableHeader>
         <tr class="text-muted small">
-            <th scope="col" class="py-3">NOME DO PDV</th>
+            <th scope="col" class="py-3">PDV / CNPJ</th>
             <th scope="col" class="py-3">TIPO</th>
             <th scope="col" class="py-3">ENDEREÇO</th>
             <th scope="col" class="py-3">STATUS</th>
@@ -25,15 +25,22 @@
     {{-- Loop para gerar as linhas da tabela (visualização em desktop) --}}
     @foreach ($pdvs as $pdv)
         <tr class="border-bottom" data-href="{{ route('pdvs.show', $pdv) }}">
-            <td class="py-3">{{ $pdv->name }}</td>
-            <td class="py-3">{{ $pdv->type }}</td>
-            <td class="py-3">{{ $pdv->street ?? 'Endereço não informado' }}{{ $pdv->number ? ', ' . $pdv->number : '' }}</td>
+            {{-- COLUNA PDV / CNPJ --}}
             <td class="py-3">
-                {{-- Exemplo de lógica de status. Ajuste as classes de cor conforme seus status --}}
-                <span class="badge rounded-pill {{ $pdv->status === 'Ativo' ? 'bg-success' : 'bg-secondary' }}">
-                    {{ $pdv->status }}
+                <div class="fw-bold">{{ $pdv->name }}</div>
+                <div class="small text-muted">{{ $pdv->cnpj ?? 'CNPJ não informado' }}</div>
+            </td>
+            {{-- COLUNA TIPO (CORRIGIDO) --}}
+            <td class="py-3">{{ $pdv->type->getLabel() }}</td>
+            {{-- COLUNA ENDEREÇO --}}
+            <td class="py-3">{{ $pdv->street ?? 'Endereço não informado' }}{{ $pdv->number ? ', ' . $pdv->number : '' }}</td>
+            {{-- COLUNA STATUS (CORRIGIDO) --}}
+            <td class="py-3">
+                <span class="badge rounded-pill bg-{{ $pdv->status->getColorClass() }}">
+                    {{ $pdv->status->getLabel() }}
                 </span>
             </td>
+            {{-- COLUNA AÇÕES --}}
             <td class="py-3 text-end">
                 <div class="btn-group btn-group-sm" role="group">
                     <a href="{{ route('pdvs.edit', $pdv) }}" class="btn btn-outline-primary" title="Editar">
@@ -59,13 +66,17 @@
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
                                 <h5 class="card-title mb-1">{{ $pdv->name }}</h5>
-                                <h6 class="card-subtitle mb-2 text-muted">{{ $pdv->type }}</h6>
+                                <h6 class="card-subtitle mb-2 text-muted">{{ $pdv->type->getLabel() }}</h6>
                             </div>
-                            <span class="badge rounded-pill {{ $pdv->status === 'Ativo' ? 'bg-success' : 'bg-secondary' }}">
-                                {{ $pdv->status }}
+                            <span class="badge rounded-pill bg-{{ $pdv->status->getColorClass() }}">
+                                {{ $pdv->status->getLabel() }}
                             </span>
                         </div>
                         <hr class="my-2">
+                        {{-- CNPJ ADICIONADO AO MOBILE --}}
+                        <p class="card-text small mb-1">
+                            <strong>CNPJ:</strong> {{ $pdv->cnpj ?? 'N/A' }}
+                        </p>
                         <p class="card-text small mb-1">
                             <strong>Endereço:</strong> {{ $pdv->street ?? 'Não informado' }}{{ $pdv->number ? ', ' . $pdv->number : '' }}
                         </p>

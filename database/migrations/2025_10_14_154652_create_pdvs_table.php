@@ -16,6 +16,7 @@ return new class extends Migration
             // Identificação
             $table->string('name');
             $table->string('slug')->unique();    
+            $table->string('cnpj', 14)->nullable()->unique();
             $table->text('description')->nullable();
 
             // Classificações (Enums)
