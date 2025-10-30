@@ -35,7 +35,8 @@
                         <option value="" disabled selected>Selecione um tipo...</option>
                         @foreach ($types as $type)
                             <option value="{{ $type->value }}" {{ old('type') == $type->value ? 'selected' : '' }}>
-                                {{ \App\Enums\Pdv\PdvType::labels()[$type->value] }}
+                                {{-- CORREÇÃO AQUI --}}
+                                {{ $type->getLabel() }}
                             </option>
                         @endforeach
                     </select>
@@ -49,7 +50,8 @@
                         <option value="" disabled selected>Selecione um status...</option>
                         @foreach ($statuses as $status)
                             <option value="{{ $status->value }}" {{ old('status') == $status->value ? 'selected' : '' }}>
-                                {{ \App\Enums\Pdv\PdvStatus::labels()[$status->value] }}
+                                {{-- CORREÇÃO AQUI --}}
+                                {{ $status->getLabel() }}
                             </option>
                         @endforeach
                     </select>

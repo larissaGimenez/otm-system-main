@@ -8,12 +8,27 @@ enum PdvStatus: string
     case INACTIVE = 'inactive';
     case CLOSED   = 'closed';
 
-    public static function labels(): array
+    /**
+     * Retorna o label (texto) para este caso específico.
+     */
+    public function getLabel(): string
     {
-        return [
-            self::ACTIVE->value   => 'Ativo',
-            self::INACTIVE->value => 'Inativo',
-            self::CLOSED->value   => 'Encerrado',
-        ];
+        return match ($this) {
+            self::ACTIVE   => 'Ativo',
+            self::INACTIVE => 'Inativo',
+            self::CLOSED   => 'Encerrado',
+        };
+    }
+
+    /**
+     * Retorna uma classe de cor Bootstrap para o status.
+     */
+    public function getColorClass(): string
+    {
+        return match ($this) {
+            self::ACTIVE   => 'success', // verde
+            self::INACTIVE => 'warning', // amarelo
+            self::CLOSED   => 'danger',  // vermelho
+        };
     }
 }

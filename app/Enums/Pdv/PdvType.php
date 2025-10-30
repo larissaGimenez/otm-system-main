@@ -4,20 +4,17 @@ namespace App\Enums\Pdv;
 
 enum PdvType: string
 {
-    case STORE   = 'store';    // loja física
-    case KIOSK   = 'kiosk';    // quiosque
-    case STAND   = 'stand';    // estande/balcão
-    case ONLINE  = 'online';   // canal online (se aplicável)
-    case OTHER   = 'other';    // outro
+    // 1. Casos atualizados
+    case COMERCIAL   = 'comercial';
+    case RESIDENCIAL = 'residencial';
+    case SHORTSTAY   = 'shortstay';
 
-    public static function labels(): array
+    public function getLabel(): string
     {
-        return [
-            self::STORE->value  => 'Loja',
-            self::KIOSK->value  => 'Quiosque',
-            self::STAND->value  => 'Estande',
-            self::ONLINE->value => 'Online',
-            self::OTHER->value  => 'Outro',
-        ];
+        return match ($this) {
+            self::COMERCIAL   => 'Comercial',
+            self::RESIDENCIAL => 'Residencial',
+            self::SHORTSTAY   => 'Short-stay',
+        };
     }
 }
