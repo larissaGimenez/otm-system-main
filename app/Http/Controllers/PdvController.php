@@ -9,6 +9,9 @@ use App\Models\ExternalId;
 use App\Enums\Pdv\PdvStatus;
 use App\Enums\Pdv\PdvType;
 
+use App\Models\Contract; 
+use App\Models\MonthlySale;
+
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -104,19 +107,31 @@ class PdvController extends Controller
 
     public function show(Pdv $pdv)
     {
-        $pdv->load('equipments');
+        // 1. Carrega os relacionamentos
+        $pdv->load([
+            'equipments', // Carrega equipamentos
+            'contracts' => function ($query) {
+                // Carrega os contratos e, para CADA contrato,
+                // carrega seus faturamentos mensais (aninhado)
+                $query->with('monthlySales')->orderBy('signed_at', 'desc');
+            }
+        ]);
 
-        // 2. Busca os IDs Externos UMA ÚNICA VEZ.
+        // 2. Busca os IDs Externos
         $externalIdRecords = ExternalId::forItem($pdv->id)->latest()->get();
 
-        // 3. Busca equipamentos que ainda não estão associados a nenhum PDV.
+        // 3. Busca equipamentos disponíveis
         $availableEquipments = Equipment::whereDoesntHave('pdvs')->get();
 
-        // 4. Envia TODOS os dados necessários para a view.
+        // 4. CONTA os contratos para a aba (igual você faz com externalId)
+        $contractCount = $pdv->contracts->count();
+
+        // 5. Envia TODOS os dados necessários para a view.
         return view('pdvs.show', [
-            'pdv' => $pdv,
-            'availableEquipments' => $availableEquipments,
-            'externalIdRecords' => $externalIdRecords, // <-- A nova variável que estamos passando
+            'pdv'                   => $pdv, // Contém PDV, Equipamentos, Contratos e Faturamentos
+            'availableEquipments'   => $availableEquipments,
+            'externalIdRecords'     => $externalIdRecords,
+            'contractCount'         => $contractCount, // <-- ADICIONADO PARA O BADGE DA ABA
         ]);
     }
 

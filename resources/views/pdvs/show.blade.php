@@ -16,12 +16,16 @@
 
             {{-- IMPORTANTE: Seu componente de navegação precisa gerar os botões com o atributo data-bs-target correspondente aos IDs abaixo. --}}
             {{-- Ex: <button data-bs-target="#gallery-tab-pane">...</button> --}}
-            <x-pdvs.tab-navigation :pdv="$pdv" :externalIdCount="$externalIdRecords->count()" />
+            <x-pdvs.tab-navigation :pdv="$pdv" :externalIdCount="$externalIdRecords->count()" :contractCount="$contractCount" />
 
             <div x-data class="tab-content" id="pdvs-details-tabContent">
                 
                 <x-tab-content-wrapper id="details-tab-pane" :active="true">
                     <x-pdvs.details :pdv="$pdv" />
+                </x-tab-content-wrapper>
+
+                <x-tab-content-wrapper id="contracts-tab-pane">
+                    <x-pdvs.contracts :pdv="$pdv" />
                 </x-tab-content-wrapper>
 
                 <x-tab-content-wrapper id="equipments-tab-pane">
@@ -53,6 +57,15 @@
 
     @foreach ($externalIdRecords as $ext)
         <x-pdvs.modals.edit-external-id :ext="$ext" :pdv="$pdv" />
+    @endforeach
+
+    <x-pdvs.modals.create-contract :pdv="$pdv" />
+    @foreach ($pdv->contracts as $contract)
+        <x-pdvs.modals.edit-contract :contract="$contract" />
+        <x-pdvs.modals.create-monthly-sale :contract="$contract" />
+        @foreach ($contract->monthlySales as $sale)
+            <x-pdvs.modals.edit-monthly-sale :sale="$sale" />
+        @endforeach
     @endforeach
 
     <x-slot name="scripts">

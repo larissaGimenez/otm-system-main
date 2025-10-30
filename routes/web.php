@@ -14,6 +14,8 @@ use App\Http\Controllers\RequestController;
 use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\ExternalIdController;
 use App\Http\Controllers\AreaController;
+use App\Http\Controllers\ContractController;
+use App\Http\Controllers\MonthlySaleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -120,6 +122,29 @@ Route::middleware('auth')->group(function () {
             Route::patch('/{team}', [AreaController::class, 'detachTeam'])->name('detach');
         });
     });
+
+    // --- ROTAS PARA GERENCIAR CONTRATOS (via Modals) ---
+    // Um contrato está sempre ligado a um PDV
+    Route::post('/pontos-de-venda/{pdv}/contracts', [ContractController::class, 'store'])
+        ->name('pdvs.contracts.store');
+
+    // Um contrato específico pode ser atualizado ou deletado
+    Route::put('/contracts/{contract}', [ContractController::class, 'update'])
+        ->name('contracts.update');
+    Route::delete('/contracts/{contract}', [ContractController::class, 'destroy'])
+        ->name('contracts.destroy');
+
+
+    // --- ROTAS PARA GERENCIAR FATURAMENTO MENSAL (via Modals) ---
+    // O faturamento está sempre ligado a um Contrato
+    Route::post('/contracts/{contract}/monthly-sales', [MonthlySaleController::class, 'store'])
+        ->name('contracts.monthly-sales.store');
+        
+    // Um faturamento específico pode ser atualizado ou deletado
+    Route::put('/monthly-sales/{monthlySale}', [MonthlySaleController::class, 'update'])
+        ->name('monthly-sales.update');
+    Route::delete('/monthly-sales/{monthlySale}', [MonthlySaleController::class, 'destroy'])
+        ->name('monthly-sales.destroy');
 });
 
 // Rotas para a equipe interna (staff, manager, admin)

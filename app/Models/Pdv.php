@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids; // Essencial para o erro
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Pdv extends Model
@@ -42,5 +43,15 @@ class Pdv extends Model
     public function equipments(): BelongsToMany
     {
         return $this->belongsToMany(Equipment::class, 'equipment_pdv')->withTimestamps();
+    }
+
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(Contract::class);
+    }
+
+    public function monthlySales(): HasMany
+    {
+        return $this->hasMany(MonthlySale::class);
     }
 }

@@ -1,6 +1,7 @@
 @props([
     'pdv',
     'externalIdCount',
+    'contractCount' => 0, // 1. ADICIONAMOS A NOVA PROP AQUI
 ])
 
 @php
@@ -17,6 +18,16 @@
             'icon' => 'bi bi-info-circle-fill',
             'active' => true,
         ],
+        
+        // 2. ADICIONAMOS A NOVA ABA "CONTRATOS" NO ARRAY
+        [
+            'id' => 'contracts-tab',
+            'target' => 'contracts-tab-pane',
+            'label' => "Contratos ({$contractCount})",
+            'icon' => 'bi bi-file-earmark-text-fill', // Ícone de contrato
+            'active' => false,
+        ],
+        
         [
             'id' => 'equipments-tab',
             'target' => 'equipments-tab-pane',
