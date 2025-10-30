@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Team;
 use App\Models\User;
+use App\Enums\User\UserRole;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -37,7 +38,9 @@ class UserController extends Controller
 
     public function create(): View
     {
-        return view('users.create');
+        $roles = UserRole::cases();
+
+        return view('users.create', compact('roles'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -85,7 +88,9 @@ class UserController extends Controller
 
     public function edit(User $user): View
     {
-        return view('users.edit', compact('user'));
+        $roles = UserRole::cases();
+
+        return view('users.edit', compact('user', 'roles'));
     }
 
     public function update(Request $request, User $user): RedirectResponse

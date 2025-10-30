@@ -60,16 +60,20 @@
                 </div>
             </div>
             <div class="col-md-6 mb-3">
-                <div class="form-floating">
-                    <select class="form-select form-select-sm" id="role" name="role" required>
-                        <option value="" disabled selected>Selecione um cargo...</option>
-                        <option value="staff" @selected(old('role') == 'staff')>Equipe Interna</option>
-                        <option value="field" @selected(old('role') == 'field')>Equipe de Campo</option>
-                        <option value="manager" @selected(old('role') == 'manager')>Gerente</option>
-                        <option value="admin" @selected(old('role') == 'admin')>Administrador</option>
-                    </select>
-                    <label for="role">Cargo / Função</label>
-                </div>
+                <label for="role" class="form-label">Nível de Acesso</label>
+                <select class="form-select" id="role" name="role" required>
+                    <option value="">Selecione um nível...</option>
+                    
+                    {{-- Itera sobre os casos do Enum passados pelo controller --}}
+                    @foreach ($roles as $role)
+                        <option 
+                            value="{{ $role->value }}" 
+                            @if(old('role') == $role->value) selected @endif 
+                        >
+                            {{ $role->getLabel() }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
         </div>
         <div class="row">

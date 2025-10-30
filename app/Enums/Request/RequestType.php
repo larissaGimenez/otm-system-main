@@ -4,18 +4,18 @@ namespace App\Enums\Request;
 
 enum RequestType: string
 {
-    case ACCESS    = 'access';     // Acesso
-    case INCIDENT  = 'incident';   // Incidente
-    case IMPROVEMENT = 'improvement'; // Melhoria
-    case SUPORTE = 'support'; // Suporte
+    case ACCESS      = 'access';     // Acesso
+    case INCIDENT    = 'incident';   // Incidente
+    case IMPROVEMENT = 'improvement';// Melhoria
+    case SUPORTE     = 'support';    // Suporte
 
-    public static function labels(): array
+    public function getLabel(): string
     {
-        return [
-            self::ACCESS->value      => 'Acesso',
-            self::INCIDENT->value    => 'Incidente',
-            self::IMPROVEMENT->value => 'Melhoria',
-            self::SUPORTE->value     => 'Suporte Técnico',
-        ];
+        return match ($this) {
+            self::ACCESS      => 'Acesso',
+            self::INCIDENT    => 'Incidente',
+            self::IMPROVEMENT => 'Melhoria',
+            self::SUPORTE     => 'Suporte Técnico',
+        };
     }
 }

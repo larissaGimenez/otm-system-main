@@ -11,10 +11,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage; // Importar Storage
 
 class Request extends Model
 {
-
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
@@ -26,6 +26,8 @@ class Request extends Model
         'area_id',
         'requester_id',
         'due_at',
+        'attachment_path',           
+        'attachment_original_name',   
     ];
 
     protected $casts = [
@@ -34,6 +36,15 @@ class Request extends Model
         'status'   => RequestStatus::class,
         'due_at'   => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        static::forceDeleting(function (Request $request) {
+            if ($request->attachment_path) {
+                Storage::disk('public')->delete($request->attachment_path);
+            }
+        });
+    }
 
     public function area(): BelongsTo
     {
@@ -48,6 +59,6 @@ class Request extends Model
     public function assignees(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'request_user')
-                    ->withTimestamps(); 
+            ->withTimestamps();
     }
 }

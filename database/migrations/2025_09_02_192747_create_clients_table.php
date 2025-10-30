@@ -3,23 +3,23 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use App\Enums\Clients\ClientType;
+use App\Enums\Clients\ClientProfile;
+use App\Enums\General\GeneralBanks;
+use App\Enums\General\GeneralPixType;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('condominiums', function (Blueprint $table) {
+        Schema::create('clients', function (Blueprint $table) {
             $table->uuidPrimary(); 
 
             // Identificação principal
-            $table->string('name');                     
-            $table->string('legal_name');               
-            $table->string('cnpj', 14)->unique();       
-            $table->string('state_registration')->nullable(); 
-
-            // Contato
-            $table->string('email')->unique()->nullable();
-            $table->string('phone')->nullable();
+            $table->string('name'); 
+            $table->enum('type', array_column(ClientType::cases(), 'value')); 
+            $table->enum('profile', array_column(ClientProfile::cases(), 'value')); 
+            $table->string('cnpj', 14)->unique();        
 
             // Endereço
             $table->string('postal_code', 8)->nullable(); 
@@ -29,18 +29,19 @@ return new class extends Migration
             $table->string('neighborhood')->nullable();   
             $table->string('city')->nullable();
             $table->string('state', 2)->nullable();
-
-            // Mídias/arquivos
-            $table->string('logo_path')->nullable();      
-            $table->string('contract_path')->nullable();  
-            $table->json('attachments')->nullable();      
-
+            
+            // Dados bancários
+            $table->enum('bank', array_column(GeneralBanks::cases(), 'value'))->nullable(); 
+            $table->string('agency')->nullable();
+            $table->string('account')->nullable();
+            $table->string('account_digit', 2)->nullable();     
+            $table->enum('pix_type', array_column(GeneralPixType::cases(), 'value'))->nullable();
+            $table->string('pix_key')->nullable();
             $table->timestamps();
             $table->softDeletes();
 
             // Índices 
             $table->index(['city', 'state']);
-            $table->comment('Condominiums that hired the service');
         });
     }
 

@@ -43,6 +43,8 @@ Route::middleware('auth')->group(function () {
 
     // CRUD de Chamados (Requests)
     Route::prefix('chamados')->name('requests.')->group(function () {
+        
+        // Rotas CRUD padrão
         Route::get('/', [RequestController::class, 'index'])->name('index');
         Route::get('/criar', [RequestController::class, 'create'])->name('create');
         Route::post('/', [RequestController::class, 'store'])->name('store');
@@ -50,6 +52,19 @@ Route::middleware('auth')->group(function () {
         Route::get('/{request}/editar', [RequestController::class, 'edit'])->name('edit');
         Route::put('/{request}', [RequestController::class, 'update'])->name('update');
         Route::delete('/{request}', [RequestController::class, 'destroy'])->name('destroy');
+
+        // Rotas para gerenciar responsáveis (Assignees)
+        // Usamos um subgrupo para organizar e nomear
+        Route::prefix('/{request}/assignees')->name('assignees.')->group(function () {
+            
+            // Rota para adicionar um ou mais responsáveis
+            Route::post('/', [RequestController::class, 'assignUsers'])->name('attach');
+            
+            // Rota para remover um responsável específico
+            Route::delete('/{user}', [RequestController::class, 'unassignUser'])->name('detach');
+        
+        });
+        
     });
 
     // CRUD de Pontos de Venda (PDV)

@@ -10,14 +10,14 @@ enum RequestStatus: string
     case CLOSED = 'closed';
     case CANCELED = 'canceled';
 
-    public static function labels(): array
+    public function getLabel(): string
     {
-        return [
-            self::OPEN->value => 'Aberto',
-            self::IN_PROGRESS->value => 'Em andamento',
-            self::RESOLVED->value => 'Resolvido',
-            self::CLOSED->value => 'Fechado',
-            self::CANCELED->value => 'Cancelado',
-        ];
+        return match ($this) {
+            self::OPEN => 'Aberto',
+            self::IN_PROGRESS => 'Em andamento',
+            self::RESOLVED => 'Resolvido',
+            self::CLOSED => 'Fechado',
+            self::CANCELED => 'Cancelado',
+        };
     }
 }

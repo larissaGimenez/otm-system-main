@@ -16,28 +16,42 @@
             <div class="px-2 mb-2 small text-uppercase fw-bold text-muted">Operacional</div>
             
             <li class="nav-item mb-1">
-                <a class="nav-link text-dark dropdown-toggle collapsed" href="#pdvSubmenu" data-bs-toggle="collapse" role="button">
+                <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('pdvs.*') ? '' : 'collapsed' }} {{ request()->routeIs('pdvs.*') ? 'active text-white' : '' }}"
+                   style="{{ request()->routeIs('pdvs.*') ? 'background-color: var(--bs-primary);' : '' }}"
+                   href="#pdvSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('pdvs.*') ? 'true' : 'false' }}">
                     <i class="bi bi-shop me-2"></i> Pontos de Venda
                 </a>
-                <div class="collapse" id="pdvSubmenu">
+                <div class="collapse {{ request()->routeIs('pdvs.*') ? 'show' : '' }}" id="pdvSubmenu">
                     <ul class="nav flex-column ps-4 pt-1">
-                        <li class="nav-item"><a href="{{ route('pdvs.index') }}" class="nav-link text-dark small py-1">Listar</a></li>
-                        <li class="nav-item"><a href="{{ route('pdvs.create') }}" class="nav-link text-dark small py-1">Criar um novo</a></li>
+                        <li class="nav-item"><a href="{{ route('pdvs.index') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('pdvs.index') ? 'fw-bold' : '' }}">Listar</a></li>
+                        <li class="nav-item"><a href="{{ route('pdvs.create') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('pdvs.create') ? 'fw-bold' : '' }}">Criar um novo</a></li>
                     </ul>
                 </div>
             </li>
 
+            {{-- ===== SEÇÃO CHAMADOS CORRIGIDA ===== --}}
             <li class="nav-item mb-1">
-                <a class="nav-link text-dark dropdown-toggle collapsed" href="#chamadosSubmenu" data-bs-toggle="collapse" role="button">
+                <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('requests.*') ? '' : 'collapsed' }} {{ request()->routeIs('requests.*') ? 'active text-white' : '' }}"
+                   style="{{ request()->routeIs('requests.*') ? 'background-color: var(--bs-primary);' : '' }}"
+                   href="#chamadosSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('requests.*') ? 'true' : 'false' }}">
                     <i class="bi bi-headset me-2"></i> Chamados
                 </a>
-                <div class="collapse" id="chamadosSubmenu">
+                <div class="collapse {{ request()->routeIs('requests.*') ? 'show' : '' }}" id="chamadosSubmenu">
                     <ul class="nav flex-column ps-4 pt-1">
-                        <li class="nav-item"><a href="#" class="nav-link text-dark small py-1">Listar</a></li>
-                        <li class="nav-item"><a href="#" class="nav-link text-dark small py-1">Criar um novo</a></li>
+                        <li class="nav-item">
+                            <a href="{{ route('requests.index') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('requests.index') ? 'fw-bold' : '' }}">
+                                Listar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('requests.create') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('requests.create') ? 'fw-bold' : '' }}">
+                                Abrir um novo
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </li>
+             {{-- ===== FIM DA SEÇÃO CHAMADOS ===== --}}
         @endif
 
         @if (Auth::user()->hasAnyRole(['admin', 'manager']))
@@ -45,18 +59,19 @@
             <div class="px-2 mb-2 small text-uppercase fw-bold text-muted">Gestão</div>
 
             <li class="nav-item mb-1">
-                <a class="nav-link text-dark dropdown-toggle collapsed" href="#equipesSubmenu" data-bs-toggle="collapse" role="button">
+                <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('management.teams.*') ? '' : 'collapsed' }} {{ request()->routeIs('management.teams.*') ? 'active text-white' : '' }}"
+                   style="{{ request()->routeIs('management.teams.*') ? 'background-color: var(--bs-primary);' : '' }}"
+                   href="#equipesSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('management.teams.*') ? 'true' : 'false' }}">
                     <i class="bi bi-people-fill me-2"></i> Equipes
                 </a>
-                <div class="collapse" id="equipesSubmenu">
+                <div class="collapse {{ request()->routeIs('management.teams.*') ? 'show' : '' }}" id="equipesSubmenu">
                     <ul class="nav flex-column ps-4 pt-1">
-                        <li class="nav-item"><a href="{{ route('management.teams.index') }}" class="nav-link text-dark small py-1">Listar</a></li>
-                        <li class="nav-item"><a href="{{ route('management.teams.create') }}" class="nav-link text-dark small py-1">Criar um novo</a></li>
+                        <li class="nav-item"><a href="{{ route('management.teams.index') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('management.teams.index') ? 'fw-bold' : '' }}">Listar</a></li>
+                        <li class="nav-item"><a href="{{ route('management.teams.create') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('management.teams.create') ? 'fw-bold' : '' }}">Criar um novo</a></li>
                     </ul>
                 </div>
             </li>
 
-            {{-- ===== NOVO MENU DE ÁREAS INSERIDO AQUI ===== --}}
             <li class="nav-item mb-1">
                 <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('areas.*') ? '' : 'collapsed' }} {{ request()->routeIs('areas.*') ? 'active text-white' : '' }}"
                    style="{{ request()->routeIs('areas.*') ? 'background-color: var(--bs-primary);' : '' }}"
@@ -65,20 +80,11 @@
                 </a>
                 <div class="collapse {{ request()->routeIs('areas.*') ? 'show' : '' }}" id="areasSubmenu">
                     <ul class="nav flex-column ps-4 pt-1">
-                        <li class="nav-item">
-                            <a href="{{ route('areas.index') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('areas.index') ? 'fw-bold' : '' }}">
-                                Listar
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('areas.create') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('areas.create') ? 'fw-bold' : '' }}">
-                                Criar uma nova
-                            </a>
-                        </li>
+                        <li class="nav-item"><a href="{{ route('areas.index') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('areas.index') ? 'fw-bold' : '' }}">Listar</a></li>
+                        <li class="nav-item"><a href="{{ route('areas.create') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('areas.create') ? 'fw-bold' : '' }}">Criar uma nova</a></li>
                     </ul>
                 </div>
             </li>
-            {{-- ===== FIM DO MENU DE ÁREAS ===== --}}
 
             <li class="nav-item mb-1">
                 <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('management.users.*') ? '' : 'collapsed' }} {{ request()->routeIs('management.users.*') ? 'active text-white' : '' }}"

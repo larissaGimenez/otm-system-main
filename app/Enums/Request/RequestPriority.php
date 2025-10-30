@@ -5,27 +5,27 @@ namespace App\Enums\Request;
 enum RequestPriority: string
 {
     case LOW = 'low';
-    case NORMAL = 'normal';
+    case MEDIUM = 'medium';
     case HIGH = 'high';
     case URGENT = 'urgent';
 
-    public static function labels(): array
+    public function getLabel(): string
     {
-        return [
-            self::LOW->value => 'Baixa',
-            self::NORMAL->value => 'Normal',
-            self::HIGH->value => 'Alta',
-            self::URGENT->value => 'Urgente',
-        ];
+        return match ($this) {
+            self::LOW => 'Baixa',
+            self::MEDIUM => 'Média',
+            self::HIGH => 'Alta',
+            self::URGENT => 'Urgente',
+        };
     }
 
-    public static function colors(): array
+    public function colors(): string
     {
-        return [
-            self::LOW->value => 'secondary',   // cinza
-            self::NORMAL->value => 'primary',  // azul
-            self::HIGH->value => 'warning',    // amarelo
-            self::URGENT->value => 'danger',   // vermelho
-        ];
+        return match ($this) {
+            self::LOW => 'secondary',   // cinza
+            self::MEDIUM => 'primary',  // azul
+            self::HIGH => 'warning',    // amarelo
+            self::URGENT => 'danger',   // vermelho
+        };
     }
 }
