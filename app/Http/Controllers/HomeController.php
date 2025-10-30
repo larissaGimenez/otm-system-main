@@ -3,47 +3,75 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pdv;
-use App\Models\Request as ServiceRequest; // Usando alias para evitar conflito
-use Illuminate\Http\Request;
+use App\Models\Request as ServiceRequest; 
+use Illuminate\Http\Request as HttpRequest;
+use App\Enums\Request\RequestStatus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Carbon\Carbon; // <-- Importar o Carbon
 
 class HomeController extends Controller
 {
-    /**
-     * Exibe a página inicial/dashboard.
-     */
     public function index(): View
     {
         $user = Auth::user();
+        
+        // --- 1. DADOS DO USUÁRIO LOGADO (Prioridade) ---
+        // Busca os 10 chamados mais recentes atribuídos ao usuário
+        $myAssignedRequests = ServiceRequest::whereHas('assignees', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->whereIn('status', [RequestStatus::OPEN, RequestStatus::IN_PROGRESS])
+            ->with('area', 'requester') 
+            ->latest('updated_at')
+            ->limit(10)
+            ->get();
+
+        // --- 2. STATS DO USUÁRIO ---
         $stats = [];
-
-        // Estatísticas de Chamados
+        
+        // Card: Meus Chamados Solicitados (criados por mim)
         $stats['myOpenRequestsCount'] = ServiceRequest::where('requester_id', $user->id)
-                                          ->whereIn('status', ['open', 'in_progress']) // Considera abertos e em andamento
-                                          ->count();
+            ->whereIn('status', [RequestStatus::OPEN, RequestStatus::IN_PROGRESS])
+            ->count();
 
-        $stats['pendingAreaRequestsCount'] = 0;
-        // Se for admin ou manager/staff, conta chamados pendentes nas suas áreas
+        // Card: Fila Pendente (das minhas áreas)
         if ($user->role === 'admin' || in_array($user->role, ['manager', 'staff'])) {
-             // Carrega as áreas das equipes do usuário
-             $user->loadMissing('teams.area');
-             $userAreaIds = $user->teams->pluck('area_id')->filter()->unique()->all();
-
-             // Admin vê todos os chamados abertos
-             if ($user->role === 'admin') {
-                 $stats['pendingAreaRequestsCount'] = ServiceRequest::where('status', 'open')->count();
-             } elseif (!empty($userAreaIds)) {
-                // Staff/Manager veem apenas os das suas áreas
-                 $stats['pendingAreaRequestsCount'] = ServiceRequest::whereIn('area_id', $userAreaIds)
-                                                     ->where('status', 'open')
-                                                     ->count();
-             }
+            $user->loadMissing('teams.area');
+            $userAreaIds = $user->teams->pluck('area_id')->filter()->unique()->all();
+            
+            $stats['pendingAreaRequestsCount'] = ServiceRequest::whereIn('area_id', $userAreaIds)
+                ->where('status', RequestStatus::OPEN)
+                ->whereDoesntHave('assignees') 
+                ->count();
         }
 
-        // Estatísticas de PDVs (Exemplo - ajuste conforme sua lógica de 'status')
-        $stats['inactivePdvsCount'] = Pdv::where('status', 'inactive')->count(); // Exemplo
+        // --- 3. STATS DE GESTÃO (Admin/Manager) ---
+        if ($user->role === 'admin' || $user->role === 'manager') {
+            // PDVs Inativos
+            // $stats['inactivePdvsCount'] = Pdv::where('status', 'inactive')->count(); 
+            $stats['inactivePdvsCount'] = 0; // Placeholder
+        }
 
-        return view('home', compact('user', 'stats'));
+        // --- 4. STATS GLOBAIS (Admin-Only) ---
+        if ($user->role === 'admin') {
+            $stats['totalOpenRequests'] = ServiceRequest::whereIn('status', [RequestStatus::OPEN, RequestStatus::IN_PROGRESS])
+                                                        ->count();
+            
+            // NOVO: Chamados abertos este mês
+            $stats['totalRequestsThisMonth'] = ServiceRequest::whereYear('created_at', Carbon::now()->year)
+                                                              ->whereMonth('created_at', Carbon::now()->month)
+                                                              ->count();
+            
+            // NOVO: Total de chamados no sistema
+            $stats['totalRequestsAllTime'] = ServiceRequest::count(); 
+        }
+        
+        // --- 5. RETORNAR A VIEW ---
+        return view('home', [
+            'user'               => $user,
+            'stats'              => $stats,
+            'myAssignedRequests' => $myAssignedRequests, 
+        ]);
     }
 }

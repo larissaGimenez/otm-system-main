@@ -48,7 +48,9 @@
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                             Prioridade:
-                            <strong>{{ $request->priority->getLabel() }}</strong>
+                            <strong class="badge rounded-pill bg-{{ $request->priority->colors() }}">
+                                {{ $request->priority->getLabel() }}
+                            </strong>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                             Tipo:
@@ -88,10 +90,10 @@
                     @forelse ($request->assignees as $assignee)
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <span>{{ $assignee->name }}</span>
-                            <form action="{{ route('requests.unassignUser', [$request, $assignee]) }}" method="POST" class="d-inline">
+                            <form action="{{ route('requests.assignees.detach', [$request, $assignee]) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('DELETE')
-                                <button type.submit" class="btn btn-sm btn-outline-danger" title="Remover" style="--bs-btn-padding-y: .1rem; --bs-btn-padding-x: .35rem; --bs-btn-font-size: .75rem;">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Remover" style="--bs-btn-padding-y: .1rem; --bs-btn-padding-x: .35rem; --bs-btn-font-size: .75rem;">
                                     &times;
                                 </button>
                             </form>
@@ -107,21 +109,30 @@
                     @endphp
                     
                     @if($filteredAssignees->isNotEmpty())
-                        <form action="{{ route('requests.assignUsers', $request) }}" method="POST">
+                        <form action="{{ route('requests.assignees.attach', $request) }}" method="POST">
                             @csrf
                             <label for="assignees" class="form-label small">Atribuir novo:</label>
-                            <div class="input-group">
-                                <select class="form-select" id="assignees" name="assignees[]" multiple required>
+                            
+                            {{-- 
+                                CORREÇÃO: 
+                                O <select multiple> foi removido do .input-group, pois o Bootstrap 5 não
+                                suporta 'select multiple' dentro de 'input-group'.
+                                Adicionamos 'size="5"' para melhorar a aparência.
+                            --}}
+                            <div class="mb-2">
+                                <select class="form-select" id="assignees" name="assignees[]" multiple required size="5">
                                     @foreach ($filteredAssignees as $user)
                                         <option value="{{ $user->id }}"
-                                            {{-- Esta é a correção para o erro 'array given' --}}
                                             {{ in_array($user->id, old('assignees', [])) ? 'selected' : '' }}>
                                             {{ $user->name }}
                                         </option>
                                     @endforeach
                                 </select>
-                                <button class="btn btn-outline-primary" type="submit">Atribuir</button>
                             </div>
+                            <div class="d-grid">
+                                <button class="btn btn-primary" type="submit">Atribuir</button>
+                            </div>
+                            
                             @error('assignees') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                             @error('assignees.*') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                         </form>
@@ -136,21 +147,26 @@
                 <div class="card-body">
                     <h5 class="card-title mb-3">Ações</h5>
                     <div class="d-grid gap-2">
+                        
+                        {{-- ADICIONAR ESTE @can --}}
+                        @can('update', $request)
                         <a href="{{ route('requests.edit', $request) }}" class="btn btn-outline-primary">
                             Editar Chamado
                         </a>
+                        @endcan
                         
+                        {{-- ADICIONAR ESTE @can --}}
+                        @can('delete', $request)
                         <form action="{{ route('requests.destroy', $request) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este chamado?');">
                             @csrf
                             @method('DELETE')
-                            <button typeG="submit" class="btn btn-outline-danger w-100">
+                            <button type="submit" class="btn btn-outline-danger w-100">
                                 Excluir Chamado
                             </button>
                         </form>
+                        @endcan
+
                     </div>
                 </div>
             </div>
-
-        </div>
-    </div>
 </x-app-layout>

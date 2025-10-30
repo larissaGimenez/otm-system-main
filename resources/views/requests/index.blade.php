@@ -32,17 +32,22 @@
             <td class="py-3">{{ $requestItem->area->name ?? 'N/A' }}</td>
             <td class="py-3">{{ $requestItem->requester->name ?? 'N/A' }}</td>
             <td class="py-3">
-                {{-- Usando o label do Enum --}}
+                {{-- 
+                    CORREÇÃO AQUI: 
+                    Chamamos o getLabel() diretamente na instância do Enum 
+                --}}
                 <span class="badge rounded-pill bg-light text-dark">
-                    {{ \App\Enums\Request\RequestStatus::labels()[$requestItem->status->value] ?? $requestItem->status->value }}
+                    {{ $requestItem->status->getLabel() }}
                 </span>
             </td>
             <td class="py-3">
-                {{-- Usando o label e a cor do Enum --}}
+                {{-- 
+                    CORREÇÃO AQUI: 
+                    Chamamos getLabel() e colors() diretamente na instância 
+                --}}
                 @php
-                    $priorityValue = $requestItem->priority->value;
-                    $priorityLabel = \App\Enums\Request\RequestPriority::labels()[$priorityValue] ?? $priorityValue;
-                    $priorityColor = \App\Enums\Request\RequestPriority::colors()[$priorityValue] ?? 'secondary';
+                    $priorityLabel = $requestItem->priority->getLabel();
+                    $priorityColor = $requestItem->priority->colors();
                 @endphp
                 <span class="badge rounded-pill bg-{{ $priorityColor }}">
                     {{ $priorityLabel }}
@@ -52,14 +57,12 @@
             <td class="py-3 text-end">
                 <div class="btn-group btn-group-sm" role="group">
                     {{-- Botão Editar --}}
-                    {{-- A Policy controlará se o usuário pode ou não editar --}}
                     @can('update', $requestItem)
                         <a href="{{ route('requests.edit', $requestItem) }}" class="btn btn-outline-primary" title="Editar">
                             <i class="bi bi-pencil-fill"></i>
                         </a>
                     @endcan
                     {{-- Botão Excluir (aciona o modal do list-layout) --}}
-                    {{-- A Policy controlará quem pode excluir --}}
                     @can('delete', $requestItem)
                         <button type="button" class="btn btn-outline-danger"
                                 data-bs-toggle="modal" data-bs-target="#deleteModal"
@@ -80,11 +83,14 @@
                 <div class="card mb-3">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                             <h5 class="card-title mb-0">{{ $requestItem->title }}</h5>
-                             @php
-                                $priorityValue = $requestItem->priority->value;
-                                $priorityLabel = \App\Enums\Request\RequestPriority::labels()[$priorityValue] ?? $priorityValue;
-                                $priorityColor = \App\Enums\Request\RequestPriority::colors()[$priorityValue] ?? 'secondary';
+                            <h5 class="card-title mb-0">{{ $requestItem->title }}</h5>
+                            {{-- 
+                                CORREÇÃO AQUI: 
+                                Chamamos getLabel() e colors() diretamente na instância 
+                            --}}
+                            @php
+                                $priorityLabel = $requestItem->priority->getLabel();
+                                $priorityColor = $requestItem->priority->colors();
                             @endphp
                             <span class="badge rounded-pill bg-{{ $priorityColor }} flex-shrink-0 ms-2">
                                 {{ $priorityLabel }}
@@ -92,14 +98,17 @@
                         </div>
                         <p class="card-text small text-muted mb-1">
                             Área: {{ $requestItem->area->name ?? 'N/A' }} |
-                            Status: {{ \App\Enums\Request\RequestStatus::labels()[$requestItem->status->value] ?? $requestItem->status->value }}
+                            {{-- 
+                                CORREÇÃO AQUI: 
+                                Chamamos o getLabel() diretamente na instância 
+                            --}}
+                            Status: {{ $requestItem->status->getLabel() }}
                         </p>
                         <p class="card-text small text-muted">
                             Aberto por {{ $requestItem->requester->name ?? 'N/A' }} em {{ $requestItem->created_at->format('d/m/Y') }}
                          </p>
                     </div>
-                     {{-- Ações poderiam ser adicionadas no card-footer se necessário --}}
-                </div>
+                 </div>
             </a>
         @endforeach
     </x-slot:mobileList>
@@ -111,10 +120,10 @@
             @if(request('search'))
                 <p><a href="{{ route('requests.index') }}" class="small">Limpar busca</a></p>
             @else
-                 <p class="text-muted">Parece que não há chamados abertos ou visíveis para você no momento.</p>
+                <p class="text-muted">Parece que não há chamados abertos ou visíveis para você no momento.</p>
             @endif
              <a href="{{ route('requests.create') }}" class="btn btn-sm btn-primary mt-2">
-                <i class="bi bi-plus-lg me-1"></i> Abrir um Novo Chamado
+                 <i class="bi bi-plus-lg me-1"></i> Abrir um Novo Chamado
             </a>
         </div>
     </x-slot:emptyState>

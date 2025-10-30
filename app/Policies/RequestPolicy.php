@@ -11,113 +11,101 @@ class RequestPolicy
     use HandlesAuthorization;
 
     /**
-     * Determine whether the user can view any models.
+     * Regra "Mestra": Permite que Admins façam qualquer coisa,
+     * ignorando todas as outras regras.
+     */
+    public function before(User $user, string $ability): ?bool
+    {
+        if ($user->role === 'admin') {
+            return true;
+        }
+        return null; // Deixa as outras regras decidirem
+    }
+
+    /**
+     * Determina se o usuário pode ver a listagem (index).
      */
     public function viewAny(User $user): bool
     {
-        return true;
+        // Qualquer usuário logado pode ver a lista (o controller já filtra)
+        return true; 
     }
 
     /**
-     * Determine whether the user can view the model.
+     * Determina se o usuário pode ver um chamado específico.
+     * (Não-admin só pode ver se for o criador ou membro da área)
      */
     public function view(User $user, Request $request): bool
     {
-        // CORREÇÃO AQUI: Verifica a coluna 'role'
-        if ($user->role === 'admin') {
-            return true;
-        }
+        // Carrega as equipes e áreas do usuário
+        $user->loadMissing('teams.area'); 
+        $userAreaIds = $user->teams->pluck('area_id')->filter()->unique()->all();
 
-        if ($user->id === $request->requester_id) {
-            return true;
-        }
-
-        if ($this->isUserMemberOfRequestArea($user, $request)) {
-            return true;
-        }
-
-        return false;
+        return $user->id === $request->requester_id || // Ele criou?
+               in_array($request->area_id, $userAreaIds); // Ele é da área?
     }
 
     /**
-     * Determine whether the user can create models.
+     * Determina se o usuário pode criar chamados.
      */
     public function create(User $user): bool
     {
-        return true;
+        // Qualquer usuário logado pode criar
+        return true; 
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Determina se o usuário pode ATUALIZAR (editar) o chamado.
+     * REGRA: Apenas membros da área responsável. Admin (pelo 'before') pode.
      */
     public function update(User $user, Request $request): bool
     {
-        // CORREÇÃO AQUI: Verifica a coluna 'role'
-        if ($user->role === 'admin') {
-            return true;
-        }
-
-        if ($this->isUserMemberOfRequestArea($user, $request)) {
-            return true;
-        }
-
-        return false;
+        // O 'before' já cuidou do admin.
+        
+        // Carrega as equipes e áreas do usuário
+        $user->loadMissing('teams.area'); 
+        $userAreaIds = $user->teams->pluck('area_id')->filter()->unique()->all();
+        
+        // Retorna true se o ID da área do chamado ESTIVER no array de IDs de área do usuário
+        return in_array($request->area_id, $userAreaIds);
     }
 
     /**
-     * Determine whether the user can delete the model.
+     * Determina se o usuário pode DELETAR o chamado.
+     * REGRA: Apenas Admin.
      */
     public function delete(User $user, Request $request): bool
     {
-        // CORREÇÃO AQUI: Verifica a coluna 'role'
-        return $user->role === 'admin';
+        // O 'before' (lá em cima) já retorna 'true' para o admin.
+        // Se o usuário chegou até aqui, ele NÃO é admin.
+        return false; 
     }
 
     /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Request $request): bool
-    {
-        // CORREÇÃO AQUI: Verifica a coluna 'role'
-        return $user->role === 'admin';
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Request $request): bool
-    {
-        // CORREÇÃO AQUI: Verifica a coluna 'role'
-        return $user->role === 'admin';
-    }
-
-    // ----------- MÉTODOS CUSTOMIZADOS -----------
-
-    /**
-     * Determine whether the user can assign users to the request.
+     * Determina se o usuário pode atribuir/remover responsáveis.
      */
     public function assign(User $user, Request $request): bool
     {
-        // CORREÇÃO AQUI: Verifica a coluna 'role'
-        if ($user->role === 'admin') {
-            return true;
-        }
-
-        if ($this->isUserMemberOfRequestArea($user, $request)) {
-            return true;
-        }
-
-        return false;
+        // Mesma lógica do 'update': só membros da área podem atribuir.
+        // (O Admin já foi liberado pelo 'before')
+        return $this->update($user, $request);
     }
 
-    // ----------- MÉTODOS AUXILIARES -----------
+    /**
+     * Determina se o usuário pode restaurar um chamado (soft delete).
+     */
+    public function restore(User $user, Request $request): bool
+    {
+        // Apenas admin (via 'before')
+        return false; 
+    }
 
     /**
-     * Verifica se o usuário pertence a alguma equipe associada à área do chamado.
+     * Determina se o usuário pode deletar permanentemente.
      */
-    protected function isUserMemberOfRequestArea(User $user, Request $request): bool
+    public function forceDelete(User $user, Request $request): bool
     {
-        $user->loadMissing('teams');
-        return $user->teams->contains(fn ($team) => $team->area_id === $request->area_id);
+        // Apenas admin (via 'before')
+        return false; 
     }
 }
