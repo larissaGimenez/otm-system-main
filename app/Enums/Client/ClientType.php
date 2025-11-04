@@ -8,12 +8,12 @@ enum ClientType: string
     case RESIDENTIAL = 'residential'; // residencial
     case SHORTSTAY  = 'shortstay';    // shortstay
 
-    public static function labels(): array
+    public function getLabel(): string
     {
-        return [
-            self::COMMERCIAL->value  => 'Comercial',
-            self::RESIDENTIAL->value => 'Residencial',
-            self::SHORTSTAY->value   => 'Short Stay',
-        ];
+        return match ($this) {
+            self::COMMERCIAL  => 'Comercial',
+            self::RESIDENTIAL => 'Residencial',
+            self::SHORTSTAY   => 'Short Stay',
+        };
     }
 }

@@ -13,16 +13,16 @@ enum GeneralBanks: string
     case MERCADO_PAGO = 'mercado_pago';
 
 
-    public static function labels(): array
+    public function getLabel(): string
     {
-        return [
-            self::ITAU->value  => 'Itaú',
-            self::BRADESCO->value => 'Bradesco',
-            self::BANCO_DO_BRASIL->value   => 'Banco do Brasil',
-            self::SANTANDER->value   => 'Santander',
-            self::NUBANK->value   => 'Nubank',  
-            self::INTER->value   => 'Inter',
-            self::MERCADO_PAGO->value   => 'Mercado Pago',
-        ];
+        return match ($this) {
+            self::ITAU  => 'Itaú',
+            self::BRADESCO => 'Bradesco',
+            self::BANCO_DO_BRASIL   => 'Banco do Brasil',
+            self::SANTANDER   => 'Santander',
+            self::NUBANK   => 'Nubank',
+            self::INTER  => 'Inter',
+            self::MERCADO_PAGO   => 'Mercado Pago',
+        };
     }
 }

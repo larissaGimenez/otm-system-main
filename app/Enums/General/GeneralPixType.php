@@ -10,14 +10,14 @@ enum GeneralPixType: string
     case EMAIL = 'email';    // email
     case PHONE = 'phone';    // phone
 
-    public static function labels(): array
+    public function getLabel(): string
     {
-        return [
-            self::CPF->value  => 'CPF',
-            self::CNPJ->value => 'CNPJ',
-            self::RANDOM_KEY->value   => 'Chave Aleatória',
-            self::EMAIL->value   => 'Email',
-            self::PHONE->value   => 'Telefone',
-        ];
+        return match ($this) {
+            self::CPF  => 'CPF',
+            self::CNPJ => 'CNPJ',
+            self::RANDOM_KEY   => 'Chave Aleatória',
+            self::EMAIL   => 'Email',
+            self::PHONE   => 'Telefone',
+        };
     }
 }

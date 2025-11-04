@@ -63,7 +63,13 @@ class ClientController extends Controller
 
     public function show(Client $client): View
     {
-        return view('clients.show', compact('client'));
+        $pdvs = $client->pdvs()->orderBy('name')->get();
+
+        $availablePdvs = Pdv::whereNull('client_id')
+            ->orderBy('name')
+            ->get();
+
+        return view('clients.show', compact('client', 'pdvs', 'availablePdvs'));
     }
 
     public function edit(Client $client): View
@@ -106,5 +112,37 @@ class ClientController extends Controller
     {
         $client->delete();
         return redirect()->route('clients.index')->with('success', 'Client deleted successfully.');
+    }
+
+    public function attachPdv(Request $request, Client $client): RedirectResponse
+    {
+        $data = $request->validate([
+            'pdv_id' => ['required', 'uuid', Rule::exists('pdvs', 'id')],
+        ]);
+
+        $pdv = Pdv::findOrFail($data['pdv_id']);
+
+        // Se já estiver associado a outro cliente, bloqueia
+        if ($pdv->client_id && $pdv->client_id !== $client->id) {
+            return back()->with('error', 'Este PDV já está associado a outro cliente.');
+        }
+
+        $pdv->client()->associate($client);
+        $pdv->save();
+
+        return back()->with('success', 'PDV associado com sucesso.');
+    }
+
+    public function detachPdv(Client $client, Pdv $pdv): RedirectResponse
+    {
+        // Garante que o PDV pertence a este cliente
+        if ($pdv->client_id !== $client->id) {
+            return back()->with('error', 'Este PDV não está associado a este cliente.');
+        }
+
+        $pdv->client()->dissociate();
+        $pdv->save();
+
+        return back()->with('success', 'PDV desassociado com sucesso.');
     }
 }

@@ -55,7 +55,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/{client}/editar', [ClientController::class, 'edit'])->name('edit');
         Route::put('/{client}', [ClientController::class, 'update'])->name('update');
         Route::delete('/{client}', [ClientController::class, 'destroy'])->name('destroy');
+
+        // Associação de PDVs
+        Route::post('/{client}/pdvs', [ClientController::class, 'attachPdv'])->name('pdvs.attach');
+        Route::delete('/{client}/pdvs/{pdv}', [ClientController::class, 'detachPdv'])->name('pdvs.detach');
     });
+
+     
 
     // CRUD de Chamados (Requests)
     Route::prefix('chamados')->name('requests.')->group(function () {

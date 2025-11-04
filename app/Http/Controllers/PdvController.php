@@ -58,7 +58,6 @@ class PdvController extends Controller
     {
         $validatedData = $request->validate([
             'name'        => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')],
-            'cnpj'        => ['nullable', 'string', 'size:14', 'unique:pdvs,cnpj'],
             'description' => ['nullable', 'string'],
             'type'        => ['required', Rule::in(array_column(PdvType::cases(), 'value'))],
             'status'      => ['required', Rule::in(array_column(PdvStatus::cases(), 'value'))],
@@ -155,7 +154,6 @@ class PdvController extends Controller
     {
         $validatedData = $request->validate([
             'name'        => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')->ignore($pdv->id)],
-            'cnpj'       => ['nullable', 'string', 'size:14', 'unique:pdvs,cnpj,' . $pdv->id],
             'description' => ['nullable', 'string'],
             'type'        => ['required', Rule::in(array_column(PdvType::cases(), 'value'))], 
             'status'      => ['required', Rule::in(array_column(PdvStatus::cases(), 'value'))],

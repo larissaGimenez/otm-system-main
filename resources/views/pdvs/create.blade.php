@@ -26,14 +26,6 @@
                     <label for="name">Nome do PDV</label>
                 </div>
             </div>
-            {{-- NOVO CAMPO CNPJ --}}
-            <div class="col-md-5 mb-3">
-                <div class="form-floating">
-                    <input type="text" class="form-control @error('cnpj') is-invalid @enderror" id="cnpj" name="cnpj" value="{{ old('cnpj') }}" placeholder="CNPJ (somente números)" maxlength="14">
-                    <label for="cnpj">CNPJ (somente números)</label>
-                    @error('cnpj') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
         </div>
 
         <div class="row">

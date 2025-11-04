@@ -8,39 +8,41 @@ use App\Enums\Pdv\PdvStatus;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('pdvs', function (Blueprint $table) {
-            $table->uuidPrimary();        
+            $table->uuidPrimary(); 
 
-            // Identificação
+            $table->foreignUuid('client_id')
+                  ->nullable() 
+                  ->constrained('clients') 
+                  ->onDelete('set null'); 
+
             $table->string('name');
-            $table->string('slug')->unique();    
-            $table->string('cnpj', 14)->nullable()->unique();
+            $table->string('slug')->unique(); 
+            $table->enum('type', array_column(PdvType::cases(), 'value'));
+            $table->enum('status', array_column(PdvStatus::cases(), 'value'));
             $table->text('description')->nullable();
 
-            // Classificações (Enums)
-            $table->enum('type', array_column(PdvType::cases(), 'value'));
-            $table->enum('status', array_column(PdvStatus::cases(), 'value'))
-                  ->default(PdvStatus::ACTIVE->value);
-
-            // Endereço básico
+            // Endereço (baseado nas suas blades de PDV)
             $table->string('street')->nullable();
-            $table->string('number', 10)->nullable();
+            $table->string('number')->nullable();
             $table->string('complement')->nullable();
 
-            // Mídias
+            // Mídia (baseado nas suas blades de PDV)
             $table->json('photos')->nullable();
             $table->json('videos')->nullable();
 
+            // Timestamps
             $table->timestamps();
             $table->softDeletes();
 
-            // Índices 
-            $table->index(['status', 'type']);
+            // Índices
+            $table->index(['client_id', 'status', 'type']);
             $table->index('name');
-
-            $table->comment('Pontos de venda (PDVs)');
         });
     }
 
