@@ -12,16 +12,16 @@ enum EquipmentType: string
     case OTHER    = 'other';
     case FECHADURA = 'fechadura';
 
-    public static function labels(): array
+    public function getLabel(): string
     {
-        return [
-            self::NOTEBOOK->value => 'Notebook',
-            self::DESKTOP->value  => 'Desktop',
-            self::PRINTER->value  => 'Impressora',
-            self::ROUTER->value   => 'Roteador',
-            self::CAMERA->value  => 'Câmera',
-            self::OTHER->value    => 'Outro',
-            self::FECHADURA->value => 'Fechadura',
-        ];
+        return match ($this) {
+            self::NOTEBOOK => 'Notebook',
+            self::DESKTOP  => 'Desktop',
+            self::PRINTER  => 'Impressora',
+            self::ROUTER   => 'Roteador',
+            self::CAMERA   => 'Câmera',
+            self::OTHER    => 'Outro',
+            self::FECHADURA => 'Fechadura',
+        };
     }
 }

@@ -33,6 +33,7 @@ return new class extends Migration
 
             // Mídias
             $table->json('photos')->nullable();
+            $table->json('videos')->nullable();
 
             $table->timestamps();
             $table->softDeletes();

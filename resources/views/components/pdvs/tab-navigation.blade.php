@@ -9,7 +9,8 @@
     $photoCount = is_array($pdv->photos) ? count($pdv->photos) : 0;
     $videoCount = is_array($pdv->videos) ? count($pdv->videos) : 0;
     $mediaTotalCount = $photoCount + $videoCount;
-
+    $fee = $pdv->activationFee;
+    
     $tabs = [
         [
             'id' => 'details-tab',
@@ -26,6 +27,17 @@
             'label' => "Contratos ({$contractCount})",
             'icon' => 'bi bi-file-earmark-text-fill', // Ícone de contrato
             'active' => false,
+        ],
+
+        [
+            'id' => 'activation-fee-tab',
+            'target' => 'activation-fee-tab-pane',
+            'label' => 'Custo Impl.',
+            'icon' => 'bi bi-cash-coin',
+            'active' => false,
+            // Adicionamos um 'badge' dinâmico
+            'badge' => $fee ? ($fee->is_paid ? 'Quitado' : 'Pendente') : null,
+            'badgeClass' => $fee ? ($fee->is_paid ? 'bg-success' : 'bg-danger') : 'bg-secondary',
         ],
         
         [

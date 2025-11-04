@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use App\Enums\Equipment\EquipmentStatus;
+use App\Enums\Equipment\EquipmentType;
 
 class EquipmentController extends Controller
 {
@@ -22,12 +25,12 @@ class EquipmentController extends Controller
 
             $query->where(function ($q) use ($term) {
                 $q->where('name', 'like', $term)
-                  ->orWhere('type', 'like', $term)
-                  ->orWhere('brand', 'like', $term)
-                  ->orWhere('model', 'like', $term)
-                  ->orWhere('serial_number', 'like', $term)
-                  ->orWhere('asset_tag', 'like', $term)
-                  ->orWhere('status', 'like', $term);
+                    ->orWhere('type', 'like', $term)
+                    ->orWhere('brand', 'like', $term)
+                    ->orWhere('model', 'like', $term)
+                    ->orWhere('serial_number', 'like', $term)
+                    ->orWhere('asset_tag', 'like', $term)
+                    ->orWhere('status', 'like', $term);
             });
         }
 
@@ -36,16 +39,25 @@ class EquipmentController extends Controller
         return view('equipments.index', compact('equipments'));
     }
 
+    /**
+     * CORRIGIDO: Passa os Enums para a view
+     */
     public function create(): View
     {
-        return view('equipments.create');
+        return view('equipments.create', [
+            'types'    => EquipmentType::cases(),
+            'statuses' => EquipmentStatus::cases(),
+        ]);
     }
 
+    /**
+     * CORRIGIDO: Validação de 'type' e valor de 'status'
+     */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'name'          => ['required', 'string', 'max:50', 'unique:equipments,name'],
-            'type'          => ['required', 'string', 'max:255'],
+            'type'          => ['required', Rule::in(array_column(EquipmentType::cases(), 'value'))], 
             'description'   => ['nullable', 'string', 'max:500'],
             'brand'         => ['nullable', 'string', 'max:255'],
             'model'         => ['nullable', 'string', 'max:255'],
@@ -65,7 +77,8 @@ class EquipmentController extends Controller
                 $validated['photos'] = $photos;
             }
 
-            $validated['status'] = 'Disponível';
+            $validated['slug'] = Str::slug($validated['name']);
+            $validated['status'] = EquipmentStatus::AVAILABLE->value;
 
             Equipment::create($validated);
 
@@ -85,21 +98,32 @@ class EquipmentController extends Controller
         return view('equipments.show', compact('equipment'));
     }
 
+    /**
+     * CORRIGIDO: Passa os Enums para a view
+     */
     public function edit(Equipment $equipment): View
     {
-        return view('equipments.edit', compact('equipment'));
+        return view('equipments.edit', [
+            'equipment' => $equipment,
+            'types'     => EquipmentType::cases(),
+            'statuses'  => EquipmentStatus::cases(),
+        ]);
     }
 
+    /**
+     * CORRIGIDO: Validação de 'type' e 'status'
+     */
     public function update(Request $request, Equipment $equipment): RedirectResponse
     {
         $validated = $request->validate([
             'name'          => ['required', 'string', 'max:50', Rule::unique('equipments', 'name')->ignore($equipment->id)],
-            'type'          => ['required', 'string', 'max:255'],
+            // Validação corrigida
+            'type'          => ['required', Rule::in(array_column(EquipmentType::cases(), 'value'))], 
             'description'   => ['nullable', 'string', 'max:500'],
             'brand'         => ['nullable', 'string', 'max:255'],
             'model'         => ['nullable', 'string', 'max:255'],
             'serial_number' => ['nullable', 'string', 'max:255', Rule::unique('equipments', 'serial_number')->ignore($equipment->id)],
-            'asset_tag'     => ['nullable', 'string', 'max:255', Rule::unique('equipments', 'asset_tag')->ignore($equipment->id)],
+            'asset_tag' => ['nullable', 'string', 'max:255', Rule::unique('equipments', 'asset_tag')->ignore($equipment->id)],
             'photos'        => ['nullable', 'array'],
             'photos.*'      => ['image', 'max:2048'],
         ]);
@@ -113,6 +137,8 @@ class EquipmentController extends Controller
                 $validated['photos'] = array_values(array_unique($existing));
             }
 
+            // O status não é atualizado aqui, é gerenciado pelo PdvController
+            // (Isso está correto, mantive sua lógica)
             unset($validated['status']);
 
             $equipment->update($validated);
@@ -130,6 +156,7 @@ class EquipmentController extends Controller
 
     public function destroy(Equipment $equipment): RedirectResponse
     {
+        // ... (sem alterações aqui) ...
         try {
             $equipment->delete();
 
@@ -143,50 +170,75 @@ class EquipmentController extends Controller
         }
     }
 
-    // Adicionar fotos
-    public function addPhotos(\Illuminate\Http\Request $request, \App\Models\Equipment $equipment)
+    public function storeMedia(Request $request, Equipment $equipment): RedirectResponse
     {
-        $request->validate([
-            'photos'   => ['required','array','min:1'],
-            'photos.*' => ['image','max:2048'],
+        $validated = $request->validate([
+            'photos'   => ['nullable', 'array'],
+            'photos.*' => ['image', 'max:2048'], // Apenas imagens
+            'videos'   => ['nullable', 'array'],
+            'videos.*' => ['mimetypes:video/mp4,video/quicktime', 'max:50000'], // Apenas vídeos
         ]);
 
         try {
             $photos = $equipment->photos ?? [];
-            foreach ($request->file('photos') as $photo) {
-                $photos[] = $photo->store('equipment_photos', 'public');
+            if ($request->hasFile('photos')) {
+                foreach ($request->file('photos') as $photo) {
+                    $photos[] = $photo->store('equipment_photos', 'public');
+                }
             }
-            $equipment->update(['photos' => array_values(array_unique($photos))]);
 
-            return back()->with('success', 'Foto(s) adicionada(s) com sucesso.');
+            $videos = $equipment->videos ?? [];
+            if ($request->hasFile('videos')) {
+                foreach ($request->file('videos') as $video) {
+                    $videos[] = $video->store('equipment_videos', 'public');
+                }
+            }
+
+            $equipment->update([
+                'photos' => array_values(array_unique($photos)),
+                'videos' => array_values(array_unique($videos)),
+            ]);
+
+            return back()->with('success', 'Mídia(s) adicionada(s) com sucesso.');
         } catch (\Throwable $e) {
-            \Log::error('Falha ao adicionar fotos: '.$e->getMessage(), ['trace'=>$e->getTraceAsString()]);
-            return back()->with('error', 'Não foi possível adicionar as fotos. Tente novamente.');
+            Log::error('Falha ao adicionar mídia ao Equipamento: '.$e->getMessage(), ['trace'=>$e->getTraceAsString()]);
+            return back()->with('error', 'Não foi possível adicionar as mídias. Tente novamente.');
         }
     }
 
-    // Remover foto por índice
-    public function removePhoto(\App\Models\Equipment $equipment, int $index)
+    /**
+     * NOVO MÉTODO (Substitui o removeMedia e corrige a assinatura da rota)
+     * Remove uma mídia (foto ou vídeo) de um equipamento.
+     */
+    public function destroyMedia(Equipment $equipment, string $type, int $index): RedirectResponse
     {
+        // Valida o 'type' para garantir que é 'photos' ou 'videos'
+        if (!in_array($type, ['photos', 'videos'])) {
+            return back()->with('error', 'Tipo de mídia inválido.');
+        }
+
         try {
-            $photos = $equipment->photos ?? [];
-            if (!isset($photos[$index])) {
-                return back()->with('error', 'Foto não encontrada.');
+            // Usa a variável $type para acessar a propriedade correta
+            $media = $equipment->$type ?? []; // $equipment->photos ou $equipment->videos
+
+            if (!isset($media[$index])) {
+                return back()->with('error', 'Mídia não encontrada.');
             }
 
-            $path = $photos[$index];
-            if ($path && \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
+            // Remove o arquivo do disco
+            $path = $media[$index];
+            if ($path && Storage::disk('public')->exists($path)) {
+                Storage::disk('public')->delete($path);
             }
 
-            unset($photos[$index]);
-            $equipment->update(['photos' => array_values($photos)]);
+            // Remove do array e reindexa
+            unset($media[$index]);
+            $equipment->update([$type => array_values($media)]); // Salva o array atualizado
 
-            return back()->with('success', 'Foto removida com sucesso.');
+            return back()->with('success', 'Mídia removida com sucesso.');
         } catch (\Throwable $e) {
-            \Log::error('Falha ao remover foto: '.$e->getMessage(), ['trace'=>$e->getTraceAsString()]);
-            return back()->with('error', 'Não foi possível remover a foto. Tente novamente.');
+            Log::error('Falha ao remover mídia do Equipamento: '.$e->getMessage(), ['trace'=>$e->getTraceAsString()]);
+            return back()->with('error', 'Não foi possível remover a mídia. Tente novamente.');
         }
     }
-
 }

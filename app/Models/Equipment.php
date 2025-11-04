@@ -7,6 +7,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+// Importe os Enums
+use App\Enums\Equipment\EquipmentStatus;
+use App\Enums\Equipment\EquipmentType;
 
 class Equipment extends Model
 {
@@ -16,6 +19,7 @@ class Equipment extends Model
 
     protected $fillable = [
         'name',
+        'slug',
         'type',
         'description',
         'status',         
@@ -24,12 +28,16 @@ class Equipment extends Model
         'serial_number',  
         'asset_tag',
         'photos',
+        'videos',
     ];
 
     protected function casts(): array
     {
         return [
             'photos' => 'array',
+            'videos' => 'array',
+            'type'   => EquipmentType::class,
+            'status' => EquipmentStatus::class,
         ];
     }
 
@@ -38,13 +46,14 @@ class Equipment extends Model
         return $this->belongsToMany(Pdv::class, 'equipment_pdv')->withTimestamps();
     }
 
+    // CORRIJA OS SCOPES para usarem os Enums
     public function scopeAvailable($query)
     {
-        return $query->where('status', 'Disponível');
+        return $query->where('status', EquipmentStatus::AVAILABLE);
     }
 
     public function scopeInUse($query)
     {
-        return $query->where('status', 'Em uso');
+        return $query->where('status', EquipmentStatus::IN_USE);
     }
 }

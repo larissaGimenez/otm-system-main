@@ -12,6 +12,9 @@ use App\Enums\Pdv\PdvType;
 use App\Models\Contract; 
 use App\Models\MonthlySale;
 
+use App\Models\ActivationFee; 
+use App\Models\FeeInstallment;
+
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -109,11 +112,15 @@ class PdvController extends Controller
     {
         // 1. Carrega os relacionamentos
         $pdv->load([
-            'equipments', // Carrega equipamentos
+            'equipments',
             'contracts' => function ($query) {
-                // Carrega os contratos e, para CADA contrato,
-                // carrega seus faturamentos mensais (aninhado)
                 $query->with('monthlySales')->orderBy('signed_at', 'desc');
+            },
+            
+            // ADICIONA O NOVO RELACIONAMENTO
+            // Carrega a taxa de ativação e, para ela, carrega as parcelas
+            'activationFee.installments' => function ($query) {
+                $query->orderBy('installment_number', 'asc');
             }
         ]);
 
@@ -123,15 +130,15 @@ class PdvController extends Controller
         // 3. Busca equipamentos disponíveis
         $availableEquipments = Equipment::whereDoesntHave('pdvs')->get();
 
-        // 4. CONTA os contratos para a aba (igual você faz com externalId)
+        // 4. CONTA os contratos para a aba
         $contractCount = $pdv->contracts->count();
 
-        // 5. Envia TODOS os dados necessários para a view.
+        // 5. Envia TODOS os dados para a view.
         return view('pdvs.show', [
-            'pdv'                   => $pdv, // Contém PDV, Equipamentos, Contratos e Faturamentos
+            'pdv'                   => $pdv, // Contém PDV, Equipamentos, Contratos, Faturamentos e a Taxa
             'availableEquipments'   => $availableEquipments,
             'externalIdRecords'     => $externalIdRecords,
-            'contractCount'         => $contractCount, // <-- ADICIONADO PARA O BADGE DA ABA
+            'contractCount'         => $contractCount,
         ]);
     }
 

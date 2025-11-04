@@ -9,13 +9,23 @@ enum EquipmentStatus: string
     case MAINTENANCE = 'maintenance'; // Manutenção
     case RETIRED   = 'retired';     // Baixado
 
-    public static function labels(): array
+    public function getLabel(): string
     {
-        return [
-            self::AVAILABLE->value   => 'Disponível',
-            self::IN_USE->value      => 'Em uso',
-            self::MAINTENANCE->value => 'Manutenção',
-            self::RETIRED->value     => 'Baixado',
-        ];
+        return match ($this) {
+            self::AVAILABLE   => 'Disponível',
+            self::IN_USE      => 'Em uso',
+            self::MAINTENANCE => 'Manutenção',
+            self::RETIRED     => 'Baixado',
+        };
+    }
+
+    public function getColorClass(): string
+    {
+        return match ($this) {
+            self::AVAILABLE   => 'success',
+            self::IN_USE      => 'primary',
+            self::MAINTENANCE => 'warning',
+            self::RETIRED     => 'secondary',
+        };
     }
 }

@@ -28,6 +28,10 @@
                     <x-pdvs.contracts :pdv="$pdv" />
                 </x-tab-content-wrapper>
 
+                <x-tab-content-wrapper id="activation-fee-tab-pane">
+                    <x-pdvs.activation-fee :pdv="$pdv" />
+                </x-tab-content-wrapper>
+
                 <x-tab-content-wrapper id="equipments-tab-pane">
                     <x-pdvs.equipments :pdv="$pdv" />
                 </x-tab-content-wrapper>
@@ -67,6 +71,11 @@
             <x-pdvs.modals.edit-monthly-sale :sale="$sale" />
         @endforeach
     @endforeach
+
+    <x-pdvs.modals.create-activation-fee :pdv="$pdv" />
+    @if ($pdv->activationFee)
+        <x-pdvs.modals.edit-activation-fee :fee="$pdv->activationFee" />
+    @endif
 
     <x-slot name="scripts">
     <script>

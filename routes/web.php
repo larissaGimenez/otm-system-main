@@ -16,6 +16,8 @@ use App\Http\Controllers\ExternalIdController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\MonthlySaleController;
+use App\Http\Controllers\ActivationFeeController;
+use App\Http\Controllers\FeeInstallmentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -94,10 +96,10 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{equipment}', [EquipmentController::class, 'destroy'])->name('destroy');
     });
 
-    Route::post('/equipments/{equipment}/photos', [EquipmentController::class, 'addPhotos'])
-        ->name('equipments.photos.store');
-    Route::delete('/equipments/{equipment}/photos/{index}', [EquipmentController::class, 'removePhoto'])
-     ->name('equipments.photos.destroy');
+    Route::post('/equipments/{equipment}/media', [EquipmentController::class, 'storeMedia'])
+        ->name('equipments.media.store');
+    Route::delete('/equipments/{equipment}/media/{type}/{index}', [EquipmentController::class, 'destroyMedia'])
+        ->name('equipments.media.destroy');
 
     Route::prefix('pontos-de-venda/{pdv}/equipamentos')->name('pdvs.equipments.')->group(function () {
         Route::post('/', [PdvController::class, 'attachEquipment'])->name('attach');
@@ -145,6 +147,26 @@ Route::middleware('auth')->group(function () {
         ->name('monthly-sales.update');
     Route::delete('/monthly-sales/{monthlySale}', [MonthlySaleController::class, 'destroy'])
         ->name('monthly-sales.destroy');
+
+    // --- ROTAS PARA GERENCIAR CUSTO DE IMPLANTAÇÃO (ActivationFee) ---
+    Route::post('/pontos-de-venda/{pdv}/activation-fee', [ActivationFeeController::class, 'store'])
+        ->name('pdvs.activation-fee.store');
+        
+    Route::put('/activation-fee/{activationFee}', [ActivationFeeController::class, 'update'])
+        ->name('activation-fee.update');
+        
+    Route::delete('/activation-fee/{activationFee}', [ActivationFeeController::class, 'destroy'])
+        ->name('activation-fee.destroy');
+
+    // --- ROTAS PARA GERENCIAR PARCELAS (FeeInstallment) ---
+    // Note que não temos 'store' ou 'destroy' aqui, pois são gerenciados pelo Controller principal.
+    // Teremos apenas rotas para marcar como PAGO ou NÃO PAGO.
+
+    Route::patch('/fee-installments/{feeInstallment}/pay', [FeeInstallmentController::class, 'pay'])
+        ->name('fee-installments.pay');
+        
+    Route::patch('/fee-installments/{feeInstallment}/unpay', [FeeInstallmentController::class, 'unpay'])
+        ->name('fee-installments.unpay');
 });
 
 // Rotas para a equipe interna (staff, manager, admin)
