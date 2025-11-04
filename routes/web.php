@@ -18,6 +18,7 @@ use App\Http\Controllers\ContractController;
 use App\Http\Controllers\MonthlySaleController;
 use App\Http\Controllers\ActivationFeeController;
 use App\Http\Controllers\FeeInstallmentController;
+use App\Http\Controllers\ClientController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,6 +45,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // CRUD de Clientes
+    Route::prefix('clientes')->name('clients.')->group(function () {
+        Route::get('/', [ClientController::class, 'index'])->name('index');
+        Route::get('/criar', [ClientController::class, 'create'])->name('create');
+        Route::post('/', [ClientController::class, 'store'])->name('store');
+        Route::get('/{client}', [ClientController::class, 'show'])->name('show');
+        Route::get('/{client}/editar', [ClientController::class, 'edit'])->name('edit');
+        Route::put('/{client}', [ClientController::class, 'update'])->name('update');
+        Route::delete('/{client}', [ClientController::class, 'destroy'])->name('destroy');
+    });
 
     // CRUD de Chamados (Requests)
     Route::prefix('chamados')->name('requests.')->group(function () {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Enums\Clients;
+namespace App\Enums\Client;
 
 enum ClientType: string
 {

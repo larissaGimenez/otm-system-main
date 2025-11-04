@@ -3,8 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\Clients\ClientType;
-use App\Enums\Clients\ClientProfile;
+use App\Enums\Client\ClientType;
 use App\Enums\General\GeneralBanks;
 use App\Enums\General\GeneralPixType;
 
@@ -18,7 +17,6 @@ return new class extends Migration
             // Identificação principal
             $table->string('name'); 
             $table->enum('type', array_column(ClientType::cases(), 'value')); 
-            $table->enum('profile', array_column(ClientProfile::cases(), 'value')); 
             $table->string('cnpj', 14)->unique();        
 
             // Endereço
@@ -47,6 +45,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('condominiums');
+        Schema::dropIfExists('clients');
     }
 };

@@ -29,7 +29,28 @@
                 </div>
             </li>
 
-            {{-- ===== SEÇÃO CHAMADOS CORRIGIDA ===== --}}
+            <li class="nav-item mb-1">
+                <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('clients.*') ? '' : 'collapsed' }} {{ request()->routeIs('clients.*') ? 'active text-white' : '' }}"
+                style="{{ request()->routeIs('clients.*') ? 'background-color: var(--bs-primary);' : '' }}"
+                href="#clientSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('clients.*') ? 'true' : 'false' }}">
+                    <i class="bi bi-people-fill me-2"></i> Clientes
+                </a>
+                <div class="collapse {{ request()->routeIs('clients.*') ? 'show' : '' }}" id="clientSubmenu">
+                    <ul class="nav flex-column ps-4 pt-1">
+                        <li class="nav-item">
+                            <a href="{{ route('clients.index') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('clients.index') ? 'fw-bold' : '' }}">
+                                Listar
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('clients.create') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('clients.create') ? 'fw-bold' : '' }}">
+                                Criar um novo
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
             <li class="nav-item mb-1">
                 <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('requests.*') ? '' : 'collapsed' }} {{ request()->routeIs('requests.*') ? 'active text-white' : '' }}"
                    style="{{ request()->routeIs('requests.*') ? 'background-color: var(--bs-primary);' : '' }}"
@@ -51,7 +72,6 @@
                     </ul>
                 </div>
             </li>
-             {{-- ===== FIM DA SEÇÃO CHAMADOS ===== --}}
         @endif
 
         @if (Auth::user()->hasAnyRole(['admin', 'manager']))
