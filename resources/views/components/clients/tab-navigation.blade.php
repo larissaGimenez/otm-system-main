@@ -1,4 +1,9 @@
-@props(['client', 'pdvCount' => 0])
+@props([
+    'client',
+    'pdvCount' => 0,
+    'contractCount' => 0,
+    'installmentsCount' => 0,
+])
 
 @php
     $tabs = [
@@ -14,6 +19,22 @@
             'target' => 'pdvs-tab-pane',
             'label' => "PDVs ({$pdvCount})",
             'icon' => 'bi bi-shop',
+            'active' => false,
+        ],
+        [
+            'id' => 'contracts-tab',
+            'target' => 'contracts-tab-pane',
+            'label' => "Contratos ({$contractCount})",
+            'icon' => 'bi bi-file-earmark-text',
+            'active' => false,
+        ],
+        [
+            'id' => 'activation-fee-tab',
+            'target' => 'activation-fee-tab-pane',
+            'label' => $installmentsCount > 0
+                ? "Custo de Implantação ({$installmentsCount})"
+                : 'Custo de Implantação',
+            'icon' => 'bi bi-cash-coin',
             'active' => false,
         ],
         [

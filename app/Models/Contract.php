@@ -14,17 +14,13 @@ class Contract extends Model
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
-        'pdv_id',
+        'client_id',
         'signed_at',
         'has_monthly_fee',
         'monthly_fee_value',
         'monthly_fee_due_day',
         'has_commission',
         'commission_percentage',
-        'payment_bank_name',
-        'payment_bank_agency',
-        'payment_bank_account',
-        'payment_pix_key',
     ];
 
     protected $casts = [
@@ -36,15 +32,30 @@ class Contract extends Model
     ];
 
     /**
-     * Um contrato pertence a um PDV.
+     * 🔗 Um contrato pertence a um cliente.
      */
-    public function pdv(): BelongsTo
+    public function client(): BelongsTo
     {
-        return $this->belongsTo(Pdv::class);
+        return $this->belongsTo(Client::class);
     }
 
+    /**
+     * 📈 Um contrato possui vários faturamentos mensais.
+     */
     public function monthlySales(): HasMany
     {
         return $this->hasMany(MonthlySale::class);
+    }
+
+    /**
+     * 💡 Acessor auxiliar: calcula o valor da comissão (para exibição).
+     */
+    public function getCommissionValueAttribute(): ?float
+    {
+        if (!$this->has_commission || !$this->commission_percentage || !$this->monthly_fee_value) {
+            return null;
+        }
+
+        return ($this->monthly_fee_value * $this->commission_percentage) / 100;
     }
 }

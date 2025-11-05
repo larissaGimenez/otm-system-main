@@ -63,14 +63,27 @@ class ClientController extends Controller
 
     public function show(Client $client): View
     {
-        $pdvs = $client->pdvs()->orderBy('name')->get();
+        $client->load([
+            'pdvs' => fn ($q) => $q->orderBy('name'),
+            'contracts' => fn ($q) => $q->with('monthlySales')->orderByDesc('signed_at'),
+            'activationFee.installments' => fn ($q) => $q->orderBy('installment_number'),
+        ])->loadCount(['pdvs', 'contracts']);
 
-        $availablePdvs = Pdv::whereNull('client_id')
-            ->orderBy('name')
-            ->get();
+        $availablePdvs = Pdv::whereNull('client_id')->orderBy('name')->get();
 
-        return view('clients.show', compact('client', 'pdvs', 'availablePdvs'));
+        $pdvCount          = $client->pdvs_count;       // vindo do loadCount
+        $contractCount     = $client->contracts_count;  // vindo do loadCount
+        $installmentsCount = $client->activationFee?->installments()->count() ?? 0;
+
+        return view('clients.show', compact(
+            'client',
+            'availablePdvs',
+            'pdvCount',
+            'contractCount',
+            'installmentsCount'
+        ));
     }
+
 
     public function edit(Client $client): View
     {

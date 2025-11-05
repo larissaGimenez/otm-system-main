@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Client extends Model
@@ -48,5 +49,20 @@ class Client extends Model
     public function pdvs(): HasMany
     {
         return $this->hasMany(Pdv::class);
+    }
+
+    public function contracts(): HasMany
+    {
+        return $this->hasMany(Contract::class);
+    }
+
+    public function monthlySales(): HasMany
+    {
+        return $this->hasMany(MonthlySale::class);
+    }
+
+    public function activationFee(): HasOne
+    {
+        return $this->hasOne(ActivationFee::class);
     }
 }

@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Enums\Pdv\FeePaymentMethod;
 
 return new class extends Migration
 {
@@ -11,22 +10,20 @@ return new class extends Migration
     {
         Schema::create('activation_fees', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            
-            // Relacionamento 1-para-1 com o PDV
-            // 'unique' garante que um PDV só pode ter uma taxa
-            $table->foreignUuid('pdv_id')->unique()->constrained('pdvs')->cascadeOnDelete();
 
-            // Informações do 'brainstorming'
-            $table->string('payment_method')->comment('Forma de pagamento (boleto, cartao, pix...)');
-            $table->unsignedTinyInteger('installments_count')->default(1)->comment('Quantas parcelas');
-            $table->date('due_date')->nullable()->comment('Data de vencimento geral (para monitoramento)');
-            
-            $table->text('notes')->nullable()->comment('Observações gerais');
-            
+            // Relacionamento 1-para-1 com o Cliente
+            $table->foreignUuid('client_id')->unique()->constrained('clients')->cascadeOnDelete();
+
+            // Valor total da taxa de implantação
+            $table->decimal('total_value', 10, 2)->default(0)->comment('Valor total da taxa de ativação');
+
+            // Observações gerais
+            $table->text('notes')->nullable();
+
             $table->timestamps();
             $table->softDeletes();
-            
-            $table->comment('Taxas de ativação (custo de implantação) do PDV');
+
+            $table->comment('Taxas de ativação (custo de implantação) vinculadas aos clientes');
         });
     }
 

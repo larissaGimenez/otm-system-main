@@ -1,48 +1,66 @@
-@props(['pdv'])
-
-{{-- 
-Este componente renderiza a aba "Custo de Implantação".
-Ele é o orquestrador desta aba.
---}}
+@props(['client'])
 
 @php
-    // O PdvController já carregou 'activationFee.installments' (eager load)
-    $fee = $pdv->activationFee; 
+    // Carrega a fee e as parcelas
+    $fee = $client->activationFee;
+
+    if ($fee) {
+        $installments = $fee->installments ?? collect();
+
+        // Total pago: soma apenas parcelas com paid_at
+        $paidValue = $installments->reduce(function ($sum, $i) {
+            return $sum + ((isset($i->paid_at) && $i->paid_at) ? (float) $i->amount : 0);
+        }, 0.0);
+
+        // Total de parcelas
+        $installmentsCount = $installments->count();
+
+        // Próximo vencimento: primeira parcela futura e não paga
+        $nextDue = $installments
+            ->filter(fn($i) => empty($i->paid_at) && $i->due_date && $i->due_date->isFuture())
+            ->sortBy('due_date')
+            ->first();
+
+        // Status quitado: todas as parcelas pagas ou total pago >= total
+        $isPaid = ($installmentsCount > 0 && $installments->every(fn($i) => !empty($i->paid_at)))
+                  || ($fee->total_value && $paidValue >= (float) $fee->total_value);
+    }
 @endphp
 
 @if ($fee)
-    {{-- 1. SE O CUSTO JÁ EXISTE, MOSTRAMOS OS DETALHES E AS PARCELAS --}}
-    
     @php
-        // Prepara os dados para o 'details-panel'
         $detailsSections = [
             [
                 'title' => 'Resumo do Custo',
                 'rows' => [
-                    ['label' => 'Valor Total', 'value' => 'R$ ' . number_format($fee->total_value, 2, ',', '.')],
-                    ['label' => 'Total Pago', 'value' => 'R$ ' . number_format($fee->paid_value, 2, ',', '.')],
-                    ['label' => 'Status', 'value' => $fee->is_paid ? 'Quitado' : 'Pendente'],
+                    ['label' => 'Valor Total', 'value' => $fee->total_value !== null ? 'R$ ' . number_format((float)$fee->total_value, 2, ',', '.') : '—'],
+                    ['label' => 'Total Pago',  'value' => 'R$ ' . number_format((float)$paidValue, 2, ',', '.')],
+                    ['label' => 'Status',      'value' => $isPaid ? 'Quitado' : 'Pendente'],
                 ],
             ],
             [
                 'title' => 'Configuração',
                 'rows' => [
-                    ['label' => 'Forma Pagamento', 'value' => $fee->payment_method->getLabel()],
-                    ['label' => 'Total de Parcelas', 'value' => $fee->installments_count],
-                    ['label' => 'Venc. Monitoramento', 'value' => $fee->due_date ? $fee->due_date->format('d/m/Y') : null],
-                    ['label' => 'Observações', 'value' => $fee->notes],
+                    ['label' => 'Total de Parcelas',  'value' => $installmentsCount],
+                    ['label' => 'Próximo Vencimento', 'value' => isset($nextDue) && $nextDue?->due_date ? $nextDue->due_date->format('d/m/Y') : '—'],
+                    ['label' => 'Observações',         'value' => $fee->notes ?: '—'],
                 ],
             ],
         ];
     @endphp
 
-    {{-- Usamos o 'details-panel' para o resumo --}}
     <x-ui.details-panel :sections="$detailsSections">
         <div class="d-flex justify-content-end gap-2 mt-3 border-top pt-3">
-            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editActivationFeeModal_{{ $fee->id }}">
+            <button type="button"
+                    class="btn btn-outline-secondary btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#editActivationFeeModal_{{ $client->id }}">
                 <i class="bi bi-pencil me-1"></i> Editar Custo
             </button>
-            <form action="{{ route('activation-fee.destroy', $fee) }}" method="POST" onsubmit="return confirm('Tem certeza? Isso excluirá TODAS as parcelas associadas.');">
+
+            <form action="{{ route('clients.activation-fee.destroy', $client) }}"
+                  method="POST"
+                  onsubmit="return confirm('Tem certeza? Isso excluirá TODAS as parcelas associadas.');">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -52,7 +70,6 @@ Ele é o orquestrador desta aba.
         </div>
     </x-ui.details-panel>
 
-    {{-- Usamos o 'crud-panel' para as parcelas (sem botão de criar) --}}
     <div class="mt-4">
         @php
             $columns = [
@@ -62,31 +79,35 @@ Ele é o orquestrador desta aba.
                 ['label' => 'Status'],
             ];
         @endphp
-        <x-ui.crud-panel 
+
+        <x-ui.crud-panel
             title="Parcelas"
-            buttonText="" {{-- Oculta o botão de criar --}}
+            buttonText=""
             createModalTargetId=""
             :records="$fee->installments"
             :columns="$columns"
             emptyStateMessage="Nenhuma parcela encontrada."
         >
             @foreach ($fee->installments as $installment)
-                <tr class="{{ $installment->is_overdue ? 'table-danger' : '' }}">
+                @php
+                    $overdue = empty($installment->paid_at) && $installment->due_date && $installment->due_date->isPast();
+                @endphp
+
+                <tr class="{{ $overdue ? 'table-danger' : '' }}">
                     <td><strong>{{ $installment->installment_number }}</strong></td>
-                    <td>{{ $installment->due_date->format('d/m/Y') }}</td>
-                    <td>{{ number_format($installment->value, 2, ',', '.') }}</td>
+                    <td>{{ $installment->due_date ? $installment->due_date->format('d/m/Y') : '—' }}</td>
+                    <td>{{ number_format((float)($installment->amount ?? 0), 2, ',', '.') }}</td>
                     <td>
-                        @if ($installment->is_paid)
+                        @if (!empty($installment->paid_at))
                             <span class="badge bg-success">Pago em {{ $installment->paid_at->format('d/m/Y') }}</span>
-                        @elseif($installment->is_overdue)
+                        @elseif($overdue)
                             <span class="badge bg-danger">Vencido</span>
                         @else
                             <span class="badge bg-secondary">Pendente</span>
                         @endif
                     </td>
                     <td class="text-end">
-                        @if ($installment->is_paid)
-                            {{-- Botão ESTORNAR --}}
+                        @if (!empty($installment->paid_at))
                             <form action="{{ route('fee-installments.unpay', $installment) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('PATCH')
@@ -95,7 +116,6 @@ Ele é o orquestrador desta aba.
                                 </button>
                             </form>
                         @else
-                            {{-- Botão PAGAR --}}
                             <form action="{{ route('fee-installments.pay', $installment) }}" method="POST" class="d-inline">
                                 @csrf
                                 @method('PATCH')
@@ -109,14 +129,16 @@ Ele é o orquestrador desta aba.
             @endforeach
         </x-ui.crud-panel>
     </div>
-
 @else
-    {{-- 2. SE O CUSTO AINDA NÃO EXISTE, MOSTRAMOS O BOTÃO DE CRIAR --}}
     <div class="text-center text-muted py-5">
         <i class="bi bi-cash-coin fs-2 d-block mb-3"></i>
         <h5 class="mb-3">Custo de Implantação</h5>
-        <p>Nenhum custo de implantação foi configurado para este PDV.</p>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createActivationFeeModal_{{ $pdv->id }}">
+        <p>Nenhum custo de implantação foi configurado para este cliente.</p>
+
+        <button type="button"
+                class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#createActivationFeeModal_{{ $client->id }}">
             <i class="bi bi-plus-circle me-1"></i> Configurar Custo de Implantação
         </button>
     </div>
