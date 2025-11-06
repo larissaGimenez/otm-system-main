@@ -15,6 +15,7 @@ use App\Http\Controllers\AreaController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\MonthlySaleController;
 use App\Http\Controllers\FeeInstallmentController;
+use App\Http\Controllers\ActivationFeeController;
 
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\TeamController;
@@ -46,10 +47,10 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/{client}/pdvs', [ClientController::class, 'attachPdv'])->name('pdvs.attach');
         Route::delete('/{client}/pdvs/{pdv}', [ClientController::class, 'detachPdv'])->name('pdvs.detach');
-
-        Route::post('{client}/activation-fee', [ClientController::class, 'storeActivationFee'])->name('activation-fee.store');
-        Route::put('{client}/activation-fee', [ClientController::class, 'updateActivationFee'])->name('activation-fee.update');
-        Route::delete('{client}/activation-fee', [ClientController::class, 'destroyActivationFee'])->name('activation-fee.destroy');
+       
+        Route::post('{client}/activation-fee', [ActivationFeeController::class, 'store'])->name('activation-fee.store');
+Route::put('{client}/activation-fee', [ActivationFeeController::class, 'update'])->name('activation-fee.update');
+Route::delete('{client}/activation-fee', [ActivationFeeController::class, 'destroy'])->name('activation-fee.destroy');
 
         Route::post('{client}/activation-fee/installments', [ClientController::class, 'storeFeeInstallment'])->name('activation-fee.installments.store');
         Route::delete('{client}/activation-fee/installments/{installment}', [ClientController::class, 'destroyFeeInstallment'])->name('activation-fee.installments.destroy');

@@ -19,12 +19,14 @@ class FeeInstallment extends Model
         'value',
         'due_date',
         'paid_at',
+        'is_paid',
     ];
 
     protected $casts = [
         'value' => 'decimal:2',
         'due_date' => 'date',
         'paid_at' => 'datetime',
+        'is_paid' => 'boolean',
     ];
     
     /**
@@ -40,13 +42,6 @@ class FeeInstallment extends Model
     }
 
     // --- CAMPOS CALCULADOS (ACCESSORS) ---
-
-    protected function isPaid(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->paid_at !== null
-        );
-    }
 
     protected function isOverdue(): Attribute
     {

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\Pdv\FeePaymentMethod;
+// use App\Enums\Pdv\FeePaymentMethod; // Removido se não for usado
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -15,33 +15,38 @@ class ActivationFee extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
 
+    /**
+     * CORRIGIDO:
+     * - Trocado 'pdv_id' por 'client_id'
+     * - Adicionado 'total_value'
+     * - Removidos campos que não vêm do form (payment_method, etc. a menos que precise)
+     */
     protected $fillable = [
-        'pdv_id',
-        'payment_method',
-        'installments_count',
-        'due_date',
+        'client_id',
+        'total_value',
         'notes',
-    ];
-
-    protected $casts = [
-        'payment_method' => FeePaymentMethod::class,
-        'due_date' => 'date',
+        // Adicione 'payment_method', 'installments_count', 'due_date'
+        // se eles existirem na sua tabela 'activation_fees'.
+        // Baseado no seu controller, SÓ 'client_id', 'total_value' e 'notes' são salvos.
     ];
 
     /**
-     * Adiciona campos virtuais (Accessors)
+     * Verifique se estes casts ainda são necessários.
+     * Se 'payment_method' etc. não estão na tabela, remova-os.
      */
+    protected $casts = [
+        // 'payment_method' => FeePaymentMethod::class, // Remova se não existir na tabela
+        // 'due_date' => 'date', // Remova se não existir na tabela
+    ];
+
     protected $appends = [
-        'total_value',
         'paid_value',
         'is_paid',
     ];
 
-    // --- RELACIONAMENTOS ---
-
-    public function pdv(): BelongsTo
+    public function client(): BelongsTo
     {
-        return $this->belongsTo(Pdv::class);
+        return $this->belongsTo(Client::class);
     }
 
     public function installments(): HasMany
@@ -49,31 +54,14 @@ class ActivationFee extends Model
         return $this->hasMany(FeeInstallment::class);
     }
 
-    // --- CAMPOS CALCULADOS (ACCESSORS) ---
-
-    /**
-     * CAMPO VIRTUAL: Calcula o valor total do Custo (soma das parcelas)
-     */
-    protected function totalValue(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->installments->sum('value')
-        );
-    }
-
-    /**
-     * CAMPO VIRTUAL: Calcula o valor total já pago (soma das parcelas pagas)
-     */
     protected function paidValue(): Attribute
     {
         return Attribute::make(
+            // V ↓↓ CORREÇÃO AQUI ↓↓ V
             get: fn () => $this->installments->whereNotNull('paid_at')->sum('value')
         );
     }
 
-    /**
-     * CAMPO VIRTUAL: Verifica se o custo total já foi pago
-     */
     protected function isPaid(): Attribute
     {
         return Attribute::make(

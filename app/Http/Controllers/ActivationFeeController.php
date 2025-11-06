@@ -2,114 +2,196 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\Pdv\FeePaymentMethod;
+// Imports necessários para a lógica do CLIENTE
+use App\Models\Client; 
 use App\Models\ActivationFee;
-use App\Models\Pdv;
-use Illuminate\Http\RedirectResponse;
+use App\Models\FeeInstallment;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rule;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Log; // Mova este 'use'
 
 class ActivationFeeController extends Controller
 {
     /**
-     * Armazena o Custo de Implantação e GERA as parcelas.
+     * Cria a Activation Fee de um cliente com as parcelas editáveis.
+     * Esta é a lógica movida do ClientController.
      */
-    public function store(Request $request, Pdv $pdv): RedirectResponse
+    public function store(Request $request, Client $client): RedirectResponse
     {
-        // Validação dos dados da "capa" e das regras de parcelamento
-        $validatedData = $request->validate([
-            'payment_method'      => ['required', Rule::in(array_column(FeePaymentMethod::cases(), 'value'))],
-            'due_date'            => ['nullable', 'date'],
-            'notes'               => ['nullable', 'string'],
-            'total_value'         => ['required', 'numeric', 'min:0.01'],
-            'installments_count'  => ['required', 'integer', 'min:1', 'max:120'],
-            'first_due_date'      => ['required', 'date'],
+        // impede fee duplicada
+        if ($client->activationFee) {
+            return back()->with('error', 'Este cliente já possui um Custo de Implantação.');
+        }
+
+        $data = $request->validate([
+            'total_value'           => ['required', 'numeric', 'min:0'],
+            'installments_count'    => ['required', 'integer', 'min:1'],
+            'first_due_date'        => ['required', 'date'],
+            'notes'                 => ['nullable', 'string', 'max:2000'],
+
+            // parcelas vindas do preview (todas opcionais; se ausentes, geramos automaticamente)
+            'installments'          => ['array'],
+            'installments.*.installment_number' => ['nullable', 'integer', 'min:1'],
+            'installments.*.due_date'           => ['nullable', 'date'],
+            'installments.*.amount'             => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        // Inicia uma transação de banco de dados
-        return DB::transaction(function () use ($request, $pdv, $validatedData) {
-            try {
-                // 1. Cria a "Capa" (ActivationFee)
-                $activationFee = $pdv->activationFee()->create([
-                    'payment_method'     => $validatedData['payment_method'],
-                    'installments_count' => $validatedData['installments_count'],
-                    'due_date'           => $validatedData['due_date'],
-                    'notes'              => $validatedData['notes'],
-                ]);
+        return DB::transaction(function () use ($client, $data) {
 
-                // 2. Calcula o valor de cada parcela
-                $totalValue = (float) $validatedData['total_value'];
-                $count = (int) $validatedData['installments_count'];
-                $firstDueDate = Carbon::parse($validatedData['first_due_date']);
-                
-                // Distribui o valor, cuidando da "diferença de centavos"
-                $baseValue = floor(($totalValue / $count) * 100) / 100;
-                $remainder = $totalValue - ($baseValue * $count);
-                
-                $installments = [];
-                for ($i = 1; $i <= $count; $i++) {
-                    $installmentValue = $baseValue;
-                    // Adiciona a diferença na primeira parcela
-                    if ($i === 1) {
-                        $installmentValue += $remainder;
-                    }
+            $fee = ActivationFee::create([
+                'client_id'   => $client->id,
+                'total_value' => $data['total_value'],
+                'notes'       => $data['notes'] ?? null,
+            ]);
 
-                    $installments[] = [
-                        'installment_number' => $i,
-                        'value'              => $installmentValue,
-                        'due_date'           => $firstDueDate->clone()->addMonths($i - 1),
-                    ];
-                }
+            // Monta as parcelas a partir do payload (ou gera automaticamente)
+            $installments = $this->normalizeInstallmentsPayload(
+                $data['installments'] ?? [],
+                (int) $data['installments_count'],
+                $data['total_value'],
+                $data['first_due_date']
+            );
 
-                // 3. Salva todas as parcelas no banco
-                $activationFee->installments()->createMany($installments);
-
-                return back()->with('success', 'Custo de implantação e parcelas gerados com sucesso.');
-
-            } catch (\Throwable $e) {
-                Log::error('Falha ao salvar Custo de Implantação: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-                // Desfaz a transação em caso de erro
-                DB::rollBack();
-                return back()->with('error', 'Erro ao salvar o custo: ' . $e->getMessage())->withInput();
+            // (opcional) checar soma vs total e ajustar centavos na última
+            $sum = collect($installments)->sum('amount');
+            if (round($sum, 2) !== round($data['total_value'], 2)) {
+                // ajusta diferença na última parcela para bater com o total
+                $diff = round($data['total_value'] - $sum, 2);
+                $lastIndex = count($installments) - 1;
+                $installments[$lastIndex]['amount'] = round($installments[$lastIndex]['amount'] + $diff, 2);
             }
+
+            // cria parcelas
+            foreach ($installments as $row) {
+                FeeInstallment::create([
+                    'activation_fee_id' => $fee->id,
+                    'installment_number'=> $row['installment_number'],
+                    'due_date'          => $row['due_date'],
+                    'value'             => $row['amount'],
+                    'is_paid'           => false,
+                    'paid_at'           => null,
+                ]);
+            }
+
+            return back()->with('success', 'Custo de Implantação configurado com sucesso.');
         });
     }
 
     /**
-     * Atualiza as notas ou data de vencimento geral (via modal).
+     * Atualiza apenas os metadados da Activation Fee (sem mexer nas parcelas).
+     * Esta é a lógica movida do ClientController.
      */
-    public function update(Request $request, ActivationFee $activationFee): RedirectResponse
+    public function update(Request $request, Client $client): RedirectResponse
     {
-        $validatedData = $request->validate([
-            'payment_method' => ['required', Rule::in(array_column(FeePaymentMethod::cases(), 'value'))],
-            'due_date'       => ['nullable', 'date'],
-            'notes'          => ['nullable', 'string'],
+        $fee = $client->activationFee;
+        if (!$fee) {
+            return back()->with('error', 'Este cliente não possui Custo de Implantação para atualizar.');
+        }
+
+        $data = $request->validate([
+            'total_value' => ['required', 'numeric', 'min:0'],
+            'notes'       => ['nullable', 'string', 'max:2000'],
         ]);
 
-        try {
-            $activationFee->update($validatedData);
-            return back()->with('success', 'Custo atualizado com sucesso.');
-        } catch (\Throwable $e) {
-            Log::error('Falha ao atualizar custo: ' . $e->getMessage());
-            return back()->with('error', 'Erro ao atualizar o custo.')->withInput();
-        }
+        $fee->update($data);
+
+        return back()->with('success', 'Custo de Implantação atualizado com sucesso.');
     }
 
     /**
-     * Remove o Custo de Implantação e TODAS as suas parcelas.
+     * Remove a Activation Fee e todas as suas parcelas.
+     * Esta é a lógica movida do ClientController.
      */
-    public function destroy(ActivationFee $activationFee): RedirectResponse
+    public function destroy(Client $client): RedirectResponse
     {
-        try {
-            // $this->authorize('delete', $activationFee);
-            $activationFee->delete(); // Soft delete (vai dar cascade)
-            return back()->with('success', 'Custo de implantação removido com sucesso.');
-        } catch (\Throwable $e) {
-            Log::error('Falha ao remover custo: ' . $e->getMessage());
-            return back()->with('error', 'Erro ao remover o custo.');
+        $fee = $client->activationFee;
+        if (!$fee) {
+            return back()->with('error', 'Este cliente não possui Custo de Implantação para excluir.');
         }
+
+        return DB::transaction(function () use ($fee) {
+            $fee->installments()->delete();
+            $fee->delete();
+
+            return back()->with('success', 'Custo de Implantação excluído com sucesso.');
+        });
+    }
+
+
+    // 
+    // MÉTODOS PRIVADOS QUE ESTAVAM NO CLIENTCONTROLLER
+    // 
+
+    /**
+     * Normaliza o payload de parcelas vindo do form, ou gera automaticamente.
+     */
+    private function normalizeInstallmentsPayload(array $payloadInstallments, int $count, float $total, string $firstDueDate): array
+    {
+        // se veio do form já editado, normaliza e completa o que faltar
+        if (!empty($payloadInstallments)) {
+            // ordena por installment_number, reindexa e garante tamanho $count
+            $byNumber = collect($payloadInstallments)
+                ->map(function ($i) { // cast básico
+                    return [
+                        'installment_number' => isset($i['installment_number']) ? (int)$i['installment_number'] : null,
+                        'due_date'           => $i['due_date'] ?? null,
+                        'amount'             => isset($i['amount']) ? (float)$i['amount'] : null,
+                    ];
+                })
+                ->filter(fn ($i) => $i['installment_number']) // precisa ter número
+                ->keyBy('installment_number');
+
+            $result = [];
+            for ($n = 1; $n <= $count; $n++) {
+                $existing = $byNumber->get($n);
+
+                $result[] = [
+                    'installment_number' => $n,
+                    'due_date'           => $existing['due_date'] ?? $this->addMonthsIso($firstDueDate, $n - 1),
+                    'amount'             => isset($existing['amount']) ? (float)$existing['amount'] : $this->evenSplit($total, $count, $n),
+                ];
+            }
+            return $result;
+        }
+
+        // caso contrário, gera automaticamente
+        $rows = [];
+        for ($n = 1; $n <= $count; $n++) {
+            $rows[] = [
+                'installment_number' => $n,
+                'due_date'           => $this->addMonthsIso($firstDueDate, $n - 1),
+                'amount'             => $this->evenSplit($total, $count, $n),
+            ];
+        }
+
+        // ajuste de centavos na última parcela
+        $sum = collect($rows)->sum('amount');
+        if (round($sum, 2) !== round($total, 2)) {
+            $diff = round($total - $sum, 2);
+            $rows[$count - 1]['amount'] = round($rows[$count - 1]['amount'] + $diff, 2);
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Divide o total igualmente e retorna o valor de cada parcela.
+     */
+    private function evenSplit(float $total, int $count, int $n): float
+    {
+        return floor(($total / $count) * 100) / 100;
+    }
+
+    /**
+     * Soma meses mantendo o dia, ajustando para o último dia do mês.
+     */
+    private function addMonthsIso(string $iso, int $months): string
+    {
+        [$y, $m, $d] = array_map('intval', explode('-', $iso));
+        $base = mktime(0, 0, 0, $m + $months, 1, $y);
+        $lastDay = (int) date('t', $base);
+        $day = min($d ?: 1, $lastDay);
+        return date('Y-m-d', mktime(0, 0, 0, date('n', $base), $day, date('Y', $base)));
     }
 }
