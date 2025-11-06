@@ -69,7 +69,6 @@ class ActivationFeeController extends Controller
                     'installment_number'=> $row['installment_number'],
                     'due_date'          => $row['due_date'],
                     'value'             => $row['amount'],
-                    'is_paid'           => false,
                     'paid_at'           => null,
                 ]);
             }
@@ -99,10 +98,6 @@ class ActivationFeeController extends Controller
         return back()->with('success', 'Custo de Implantação atualizado com sucesso.');
     }
 
-    /**
-     * Remove a Activation Fee e todas as suas parcelas.
-     * Esta é a lógica movida do ClientController.
-     */
     public function destroy(Client $client): RedirectResponse
     {
         $fee = $client->activationFee;
@@ -111,10 +106,13 @@ class ActivationFeeController extends Controller
         }
 
         return DB::transaction(function () use ($fee) {
-            $fee->installments()->delete();
-            $fee->delete();
+            // Força a exclusão permanente das parcelas
+            $fee->installments()->forceDelete();
+            
+            // Força a exclusão permanente do Custo "pai"
+            $fee->forceDelete(); 
 
-            return back()->with('success', 'Custo de Implantação excluído com sucesso.');
+            return back()->with('success', 'Custo de Implantação excluído permanentemente.');
         });
     }
 
@@ -193,5 +191,64 @@ class ActivationFeeController extends Controller
         $lastDay = (int) date('t', $base);
         $day = min($d ?: 1, $lastDay);
         return date('Y-m-d', mktime(0, 0, 0, date('n', $base), $day, date('Y', $base)));
+    }
+
+    public function renegotiate(Request $request, Client $client): RedirectResponse
+    {
+        $fee = $client->activationFee;
+
+        if (!$fee) {
+            return back()->with('error', 'Custo de Implantação não encontrado.');
+        }
+
+        // --- 1. Validação do Formulário ---
+        $validated = $request->validate([
+            'installments_count' => ['required', 'integer', 'min:1'],
+            'first_due_date'     => ['required', 'date'],
+        ], [
+            'installments_count.min' => 'O número de parcelas deve ser pelo menos 1.',
+        ]);
+
+        return DB::transaction(function () use ($fee, $validated) {
+            
+            // --- 2. Calcular o Saldo Devedor Líquido ---
+            $totalValue = (float) $fee->total_value;
+            $totalPaid = (float) $fee->installments()->sum('paid_value');
+            $netBalance = round($totalValue - $totalPaid, 2); // Saldo devedor líquido
+
+            if ($netBalance <= 0) {
+                return back()->with('error', 'Não há saldo devedor para renegociar.');
+            }
+
+            // --- 3. CORREÇÃO: Bloco de "forceDelete" REMOVIDO ---
+            // Não vamos mais apagar o histórico.
+
+            // --- 4. Descobrir o novo número da parcela ---
+            // Pega o número mais alto de TODAS as parcelas
+            $maxNumber = (int) $fee->installments()->max('installment_number');
+
+            // --- 5. Gerar as novas parcelas ---
+            $newInstallmentData = $this->normalizeInstallmentsPayload(
+                [], // Sem payload existente
+                (int) $validated['installments_count'],
+                $netBalance, // O "Total" agora é o Saldo Devedor
+                $validated['first_due_date']
+            );
+
+            // --- 6. Salvar as novas parcelas ---
+            foreach ($newInstallmentData as $row) {
+                FeeInstallment::create([
+                    'activation_fee_id'  => $fee->id,
+                    'installment_number' => $maxNumber + $row['installment_number'],
+                    'value'              => $row['amount'],
+                    'due_date'           => $row['due_date'],
+                    'paid_value'         => null,
+                    'paid_at'            => null,
+                ]);
+            }
+            
+            return back()->with('success', 'Novas parcelas de renegociação criadas com sucesso.');
+
+        });
     }
 }

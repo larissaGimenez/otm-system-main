@@ -15,12 +15,6 @@ class ActivationFee extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
 
-    /**
-     * CORRIGIDO:
-     * - Trocado 'pdv_id' por 'client_id'
-     * - Adicionado 'total_value'
-     * - Removidos campos que não vêm do form (payment_method, etc. a menos que precise)
-     */
     protected $fillable = [
         'client_id',
         'total_value',

@@ -17,22 +17,22 @@ class FeeInstallment extends Model
         'activation_fee_id',
         'installment_number',
         'value',
+        'paid_value',
         'due_date',
         'paid_at',
-        'is_paid',
     ];
 
     protected $casts = [
-        'value' => 'decimal:2',
-        'due_date' => 'date',
-        'paid_at' => 'datetime',
-        'is_paid' => 'boolean',
+        'value'      => 'decimal:2',
+        'paid_value' => 'decimal:2',
+        'due_date'   => 'date',
+        'paid_at'    => 'datetime',
     ];
     
     /**
-     * Adiciona campos virtuais (Accessors)
+     * CORREÇÃO: Trocamos 'pending_value' por 'balance_value'
      */
-    protected $appends = ['is_paid', 'is_overdue'];
+    protected $appends = ['is_paid', 'is_overdue', 'balance_value'];
 
     // --- RELACIONAMENTOS ---
 
@@ -43,10 +43,41 @@ class FeeInstallment extends Model
 
     // --- CAMPOS CALCULADOS (ACCESSORS) ---
 
+    protected function isPaid(): Attribute
+    {
+        return Attribute::make(
+            get: fn () => $this->paid_at !== null && 
+                          $this->paid_value !== null && 
+                          $this->paid_value >= $this->value
+        );
+    }
+
     protected function isOverdue(): Attribute
     {
         return Attribute::make(
-            get: fn () => $this->paid_at === null && $this->due_date->isPast()
+            get: fn () => !$this->is_paid && $this->due_date->isBefore(now()->startOfDay())
+        );
+    }
+
+    /**
+     * NOVO ACCESSOR: O "Saldo" da parcela (Positivo ou Negativo).
+     * Calcula (Valor Pago - Valor Devido)
+     */
+    protected function balanceValue(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $paid = (float) $this->paid_value ?? 0.0;
+                $value = (float) $this->value ?? 0.0;
+
+                // Se não foi pago, o saldo é o valor total negativo (devedor)
+                if ($paid === 0.0 && $this->paid_at === null) {
+                    return -$value;
+                }
+                
+                // Se foi pago (parcial ou total), calcula a diferença
+                return $paid - $value;
+            }
         );
     }
 }

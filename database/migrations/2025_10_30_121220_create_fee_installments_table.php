@@ -17,8 +17,8 @@ return new class extends Migration
             $table->unsignedTinyInteger('installment_number')->comment('Número da parcela (1, 2, 3...)');
             $table->decimal('value', 8, 2)->comment('Valor desta parcela');
             $table->date('due_date')->comment('Data de vencimento desta parcela');
-            $table->boolean('is_paid')->default(false);
             $table->dateTime('paid_at')->nullable();
+            $table->decimal('paid_value', 10, 2)->nullable();
 
             $table->timestamps();
             $table->softDeletes();

@@ -49,11 +49,12 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{client}/pdvs/{pdv}', [ClientController::class, 'detachPdv'])->name('pdvs.detach');
        
         Route::post('{client}/activation-fee', [ActivationFeeController::class, 'store'])->name('activation-fee.store');
-Route::put('{client}/activation-fee', [ActivationFeeController::class, 'update'])->name('activation-fee.update');
-Route::delete('{client}/activation-fee', [ActivationFeeController::class, 'destroy'])->name('activation-fee.destroy');
+        Route::put('{client}/activation-fee', [ActivationFeeController::class, 'update'])->name('activation-fee.update');
+        Route::delete('{client}/activation-fee', [ActivationFeeController::class, 'destroy'])->name('activation-fee.destroy');
 
-        Route::post('{client}/activation-fee/installments', [ClientController::class, 'storeFeeInstallment'])->name('activation-fee.installments.store');
-        Route::delete('{client}/activation-fee/installments/{installment}', [ClientController::class, 'destroyFeeInstallment'])->name('activation-fee.installments.destroy');
+       
+        Route::post('{client}/activation-fee/installments', [ActivationFeeController::class, 'renegotiate'])->name('activation-fee.installments.store');
+        Route::delete('{client}/activation-fee/installments/{installment}', [ActivationFeeController::class, 'destroyFeeInstallment'])->name('activation-fee.installments.destroy');
 
         Route::post('{client}/contracts', [ContractController::class, 'store'])->name('contracts.store');
     });
