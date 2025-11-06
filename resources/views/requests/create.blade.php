@@ -1,40 +1,100 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="h4 font-weight-bold">
-            Abrir Novo Chamado
-        </h2>
-    </x-slot>
-
     <x-ui.flash-message />
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
+    <div class="bg-white p-4 p-md-5 shadow-sm rounded">
+        
+        <h3 class="mb-4">Abrir Novo Chamado</h3>
+        
+        {{-- 1. ADICIONAMOS x-data PARA GUARDAR O TIPO SELECIONADO --}}
+        <form 
+            x-data="{ selectedType: '{{ old('type', '') }}' }" 
+            method="POST" 
+            action="{{ route('requests.store') }}" 
+            enctype="multipart/form-data"
+        >
+            @csrf
+
+            @if ($errors->any())
+                <div class="alert alert-danger mb-4">
+                    <strong>Opa!</strong> Verifique os campos abaixo.
+                </div>
+            @endif
+
+            <div class="row mb-3">
+                <label for="area_id" class="col-md-2 col-form-label">Departamento <span class="text-danger">*</span></label>
+                <div class="col-md-10">
+                    <select class="form-select @error('area_id') is-invalid @enderror" id="area_id" name="area_id" required>
+                        <option value="" disabled selected>Selecione a área responsável...</option>
+                        @foreach ($areas as $area)
+                            <option value="{{ $area->id }}" {{ old('area_id') == $area->id ? 'selected' : '' }}>
+                                {{ $area->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('area_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <label for="type" class="col-md-2 col-form-label">Tipo <span class="text-danger">*</span></label>
+                <div class="col-md-10">
+                    {{-- 2. ADICIONAMOS x-model PARA ATUALIZAR A VARIÁVEL 'selectedType' --}}
+                    <select class="form-select @error('type') is-invalid @enderror" 
+                            id="type" name="type" 
+                            x-model="selectedType" 
+                            required>
+                        <option value="" disabled selected>Selecione o tipo...</option>
+                        @foreach ($types as $type)
+                            <option value="{{ $type->value }}" {{ old('type') == $type->value ? 'selected' : '' }}>
+                                {{ $type->getLabel() }} 
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('type') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
+
+            {{-- 3. ADICIONAMOS x-show PARA MOSTRAR ESTE CAMPO CONDICIONALMENTE --}}
+            <div 
+                class="row mb-3" 
+                x-show="selectedType === 'manutencao_pdv'" 
+                style="display: none;"
+            >
+                <label for="pdv_id" class="col-md-2 col-form-label">Cliente / PDV <span class="text-danger">*</span></label>
+                <div class="col-md-10">
+                    <select class="form-select @error('pdv_id') is-invalid @enderror" id="pdv_id" name="pdv_id" 
+                            {{-- 4. Torna o 'required' dinâmico --}}
+                            :required="selectedType === 'manutencao_pdv'">
+                        <option value="" selected>Nenhum PDV específico...</option>
+                        @foreach ($pdvs as $pdv)
+                            <option value="{{ $pdv->id }}" {{ old('pdv_id') == $pdv->id ? 'selected' : '' }}>
+                                {{ $pdv->client?->name ?? 'Sem Cliente' }} - {{ $pdv->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    @error('pdv_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            </div>
             
-            <form method="POST" action="{{ route('requests.store') }}" enctype="multipart/form-data">
-                @csrf
-
-                @if ($errors->any())
-                    <div class="alert alert-danger mb-4">
-                        <strong>Opa!</strong> Verifique os campos abaixo.
-                    </div>
-                @endif
-
-                <h5 class="mb-3 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">Detalhes do Chamado</h5>
-
-                <div class="mb-3">
-                    <label for="title" class="form-label">Título <span class="text-danger">*</span></label>
+            <div class="row mb-3">
+                <label for="title" class="col-md-2 col-form-label">Assunto <span class="text-danger">*</span></label>
+                <div class="col-md-10">
                     <input type="text" class="form-control @error('title') is-invalid @enderror" id="title" name="title" value="{{ old('title') }}" required>
                     @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
+            </div>
 
-                <div class="mb-3">
-                    <label for="description" class="form-label">Descrição / Observações (Opcional)</label>
-                    <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="5">{{ old('description') }}</textarea>
+            <div class="row mb-3">
+                <label for="description" class="col-md-2 col-form-label">Observações</label>
+                <div class="col-md-10">
+                    <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="8">{{ old('description') }}</textarea>
                     @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
+            </div>
 
-                <div class="mb-3">
-                    <label for="attachment" class="form-label">Anexo (Opcional)</label>
+            <div class="row mb-3">
+                <label for="attachment" class="col-md-2 col-form-label">Anexo</label>
+                <div class="col-md-10">
                     <input 
                         type="file" 
                         class="form-control @error('attachment') is-invalid @enderror" 
@@ -44,53 +104,13 @@
                     @error('attachment') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     <div class="form-text">Você pode anexar um único arquivo (PDF, JPG, PNG, ZIP, etc).</div>
                 </div>
+            </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="area_id" class="form-label">Área <span class="text-danger">*</span></label>
-                        <select class="form-select @error('area_id') is-invalid @enderror" id="area_id" name="area_id" required>
-                            <option value="" disabled selected>Selecione a área responsável...</option>
-                            @foreach ($areas as $area)
-                                <option value="{{ $area->id }}" {{ old('area_id') == $area->id ? 'selected' : '' }}>
-                                    {{ $area->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('area_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                    </div>
+            <input type="hidden" name="priority" value="{{ App\Enums\Request\RequestPriority::MEDIUM->value }}">
+            <input type="hidden" name="status" value="{{ App\Enums\Request\RequestStatus::OPEN->value }}">
 
-                    <div class="col-md-6 mb-3">
-                        <label for="pdv_id" class="form-label">PDV (Opcional)</label>
-                        <select class="form-select @error('pdv_id') is-invalid @enderror" id="pdv_id" name="pdv_id">
-                            <option value="" selected>Nenhum PDV específico...</option>
-                            @foreach ($pdvs as $pdv)
-                                <option value="{{ $pdv->id }}" {{ old('pdv_id') == $pdv->id ? 'selected' : '' }}>
-                                    {{ $pdv->name }} ({{ $pdv->client?->name ?? 'Sem Cliente' }})
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('pdv_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label for="type" class="form-label">Tipo <span class="text-danger">*</span></label>
-                        <select class="form-select @error('type') is-invalid @enderror" id="type" name="type" required>
-                            <option value="" disabled selected>Selecione o tipo...</option>
-                            @foreach ($types as $type)
-                                <option value="{{ $type->value }}" {{ old('type') == $type->value ? 'selected' : '' }}>
-                                    {{ $type->getLabel() }} 
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('type') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                    </div>
-                </div>
-                
-                {{-- Campos Prioridade e Status são definidos automaticamente no Controller --}}
-                <input type="hidden" name="priority" value="{{ App\Enums\Request\RequestPriority::MEDIUM->value }}">
-                <input type="hidden" name="status" value="{{ App\Enums\Request\RequestStatus::OPEN->value }}">
-
-                <div class="mt-3 d-flex justify-content-end">
+            <div class="row mt-4">
+                <div class="col-md-10 offset-md-2">
                     <a href="{{ route('requests.index') }}" class="btn btn-outline-secondary me-2">
                         Cancelar
                     </a>
@@ -98,7 +118,7 @@
                         Abrir Chamado
                     </button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 </x-app-layout>

@@ -1,176 +1,170 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="h4 font-weight-bold">
-            Chamado: {{ $request->title }}
-        </h2>
-    </x-slot>
 
     <x-ui.flash-message />
 
-    <div class="row">
-        {{-- Coluna Principal (Detalhes) --}}
-        <div class="col-lg-8">
-            <div class="card shadow-sm border-0 mb-3">
-                <div class="card-body">
-                    <h5 class="card-title border-bottom pb-2 mb-3">Descrição</h5>
-                    
-                    @if($request->description)
-                        <div class="text-muted" style="white-space: pre-wrap;">{!! nl2br(e($request->description)) !!}</div>
-                    @else
-                        <p class="text-muted fst-italic">Nenhuma descrição fornecida.</p>
-                    @endif
-
-                    @if ($request->attachment_path)
-                        <hr>
-                        <h5 class="card-title border-bottom pb-2 mb-3">Anexo</h5>
-                        <p>
-                            <i class="bi bi-paperclip"></i>
-                            <a href="{{ Storage::url($request->attachment_path) }}" target="_blank">
-                                {{ $request->attachment_original_name ?? 'Baixar Anexo' }}
-                            </a>
-                        </p>
-                    @endif
+    <x-slot name="header">
+        <div class="container-fluid px-0 col-lg-11 mx-auto">
+            <div class="row align-items-start g-2">
+                <div class="col-12">
+                    <h2 class="fw-bold mb-1 text-break text-wrap fs-5 fs-md-4 fs-lg-3">
+                        {{ $request->title }}
+                    </h2>
                 </div>
             </div>
         </div>
+    </x-slot>
 
-        {{-- Barra Lateral (Informações e Ações) --}}
-        <div class="col-lg-4">
-            
-            {{-- Card de Detalhes --}}
-            <div class="card shadow-sm border-0 mb-3">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Detalhes</h5>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            Status:
-                            <span class="badge bg-primary rounded-pill">{{ $request->status->getLabel() }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            Prioridade:
-                            <strong class="badge rounded-pill bg-{{ $request->priority->colors() }}">
-                                {{ $request->priority->getLabel() }}
-                            </strong>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            Tipo:
-                            <strong>{{ $request->type->getLabel() }}</strong>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            PDV:
-                            <strong>{{ $request->pdv->name ?? 'N/A' }}</strong>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            Área:
-                            <strong>{{ $request->area->name }}</strong>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            Solicitante:
-                            <strong>{{ $request->requester->name }}</strong>
-                        </li>
-                        @if($request->due_at)
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            Prazo:
-                            <strong class="text-danger">{{ $request->due_at->format('d/m/Y') }}</strong>
-                        </li>
+    <div class="col-lg-11 mx-auto">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-body p-4 p-md-5">
+                        <h5 class="card-title text-muted small text-uppercase mb-3">Descrição</h5>
+
+                        @if($request->description)
+                            <div class="text-dark" style=" word-break: break-all;">
+                                {!! nl2br(e($request->description)) !!}
+                            </div>
+                        @else
+                            <p class="text-muted fst-italic mb-0">Nenhuma descrição fornecida.</p>
                         @endif
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            Criado em:
-                            <small>{{ $request->created_at->format('d/m/Y \à\s H:i') }}</small>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
-                            Atualizado em:
-                            <small>{{ $request->updated_at->format('d/m/Y \à\s H:i') }}</small>
-                        </li>
-                    </ul>
-                </div>
-            </div>
 
-            {{-- Card de Responsáveis --}}
-            <div class="card shadow-sm border-0 mb-3">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Responsáveis</h5>
-                    
-                    @forelse ($request->assignees as $assignee)
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span>{{ $assignee->name }}</span>
-                            <form action="{{ route('requests.assignees.detach', [$request, $assignee]) }}" method="POST" class="d-inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Remover" style="--bs-btn-padding-y: .1rem; --bs-btn-padding-x: .35rem; --bs-btn-font-size: .75rem;">
-                                    &times;
-                                </button>
-                            </form>
-                        </div>
-                    @empty
-                        <p class="text-muted small">Nenhum responsável atribuído.</p>
-                    @endforelse
-                    
-                    <hr>
-                    
-                    @php
-                        $filteredAssignees = $availableAssignees->whereNotIn('id', $request->assignees->pluck('id'));
-                    @endphp
-                    
-                    @if($filteredAssignees->isNotEmpty())
-                        <form action="{{ route('requests.assignees.attach', $request) }}" method="POST">
-                            @csrf
-                            <label for="assignees" class="form-label small">Atribuir novo:</label>
-                            
-                            {{-- 
-                                CORREÇÃO: 
-                                O <select multiple> foi removido do .input-group, pois o Bootstrap 5 não
-                                suporta 'select multiple' dentro de 'input-group'.
-                                Adicionamos 'size="5"' para melhorar a aparência.
-                            --}}
-                            <div class="mb-2">
-                                <select class="form-select" id="assignees" name="assignees[]" multiple required size="5">
-                                    @foreach ($filteredAssignees as $user)
-                                        <option value="{{ $user->id }}"
-                                            {{ in_array($user->id, old('assignees', [])) ? 'selected' : '' }}>
-                                            {{ $user->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="d-grid">
-                                <button class="btn btn-primary" type="submit">Atribuir</button>
-                            </div>
-                            
-                            @error('assignees') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                            @error('assignees.*') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
-                        </form>
-                    @else
-                         <p class="text-muted small">Todos os usuários da área já estão atribuídos.</p>
-                    @endif
-                </div>
-            </div>
-
-            {{-- Card de Ações --}}
-            <div class="card shadow-sm border-0 mb-3">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Ações</h5>
-                    <div class="d-grid gap-2">
-                        
-                        {{-- ADICIONAR ESTE @can --}}
-                        @can('update', $request)
-                        <a href="{{ route('requests.edit', $request) }}" class="btn btn-outline-primary">
-                            Editar Chamado
-                        </a>
-                        @endcan
-                        
-                        {{-- ADICIONAR ESTE @can --}}
-                        @can('delete', $request)
-                        <form action="{{ route('requests.destroy', $request) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este chamado?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-outline-danger w-100">
-                                Excluir Chamado
-                            </button>
-                        </form>
-                        @endcan
-
+                        @if ($request->attachment_path)
+                            <hr>
+                            <h5 class="card-title text-muted small text-uppercase mb-3">Anexo</h5>
+                            <p class="mb-0">
+                                <i class="bi bi-paperclip me-2"></i>
+                                <a href="{{ Storage::url($request->attachment_path) }}" target="_blank" class="text-decoration-none fw-semibold">
+                                    {{ $request->attachment_original_name ?? 'Baixar Anexo' }}
+                                </a>
+                            </p>
+                        @endif
                     </div>
                 </div>
             </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title text-muted small text-uppercase mb-0">Detalhes</h5>
+                            <div class="d-flex">
+                                @can('update', $request)
+                                    <a href="{{ route('requests.edit', $request) }}" class="btn btn-link btn-sm p-0 text-secondary me-2" title="Editar Solicitação">
+                                        <i class="bi bi-pencil fs-5"></i>
+                                    </a>
+                                @endcan
+                                @can('delete', $request)
+                                    <form action="{{ route('requests.destroy', $request) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir esta solicitação?');" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-link btn-sm p-0 text-danger" title="Excluir Solicitação">
+                                            <i class="bi bi-trash fs-5"></i>
+                                        </button>
+                                    </form>
+                                @endcan
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label class="col-4 col-form-label text-muted fw-bold small">Status</label>
+                            <div class="col-8">
+                                <span class="badge bg-primary rounded-pill">{{ $request->status->getLabel() }}</span>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label class="col-4 col-form-label text-muted fw-bold small">Prioridade</label>
+                            <div class="col-8">
+                                <strong class="badge rounded-pill bg-{{ $request->priority->colors() }}">
+                                    {{ $request->priority->getLabel() }}
+                                </strong>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label class="col-4 col-form-label text-muted fw-bold small">Tipo</label>
+                            <div class="col-8">
+                                <p class="form-control-plaintext py-0 text-dark">{{ $request->type->getLabel() }}</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label class="col-4 col-form-label text-muted fw-bold small">Área</label>
+                            <div class="col-8">
+                                <p class="form-control-plaintext py-0 text-dark">{{ $request->area->name }}</p>
+                            </div>
+                        </div>
+
+                        @if($request->pdv)
+                        <div class="row">
+                            <label class="col-4 col-form-label text-muted fw-bold small">PDV</label>
+                            <div class="col-8">
+                                <a href="{{ route('pdvs.show', $request->pdv) }}" class="form-control-plaintext py-0 text-decoration-none">{{ $request->pdv->name }}</a>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title text-muted small text-uppercase mb-0">Responsáveis</h5>
+                            @can('assign', $request)
+                            <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#assignUsersModal_{{ $request->id }}" title="Atribuir responsável">
+                                <i class="bi bi-person-plus fs-5"></i>
+                            </button>
+                            @endcan
+                        </div>
+
+                        @forelse ($request->assignees as $assignee)
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="flex-shrink-0">
+                                    <span class="avatar-initials bg-secondary text-white">
+                                        {{ Str::substr($assignee->name, 0, 2) }}
+                                    </span>
+                                </div>
+                                <div class="flex-grow-1 ms-2">
+                                    <span class="fw-bold">{{ $assignee->name }}</span>
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-muted small mb-0">Nenhum responsável atribuído.</p>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-body p-4">
+                        <h5 class="card-title text-muted small text-uppercase mb-4">Informações</h5>
+
+                        <ul class="list-unstyled small text-muted">
+                            <li class="mb-2 d-flex align-items-center">
+                                <i class="bi bi-person me-2 fs-5"></i>
+                                <span>Solicitante: <strong class="text-dark">{{ $request->requester->name }}</strong></span>
+                            </li>
+                            <li class="mb-2 d-flex align-items-center">
+                                <i class="bi bi-clock me-2 fs-5"></i>
+                                <span>Criado em: <strong class="text-dark">{{ $request->created_at->format('d/m/Y') }}</strong></span>
+                            </li>
+                            <li class="mb-2 d-flex align-items-center">
+                                <i class="bi bi-clock-history me-2 fs-5"></i>
+                                <span>Atualizado em: <strong class="text-dark">{{ $request->updated_at->format('d/m/Y') }}</strong></span>
+                            </li>
+                            @if($request->due_at)
+                            <li class="mb-2 d-flex align-items-center">
+                                <i class="bi bi-calendar-x me-2 fs-5 text-danger"></i>
+                                <span>Prazo: <strong class="text-danger">{{ $request->due_at->format('d/m/Y') }}</strong></span>
+                            </li>
+                            @endif
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <x-requests.modals.assign-users :request="$request" :availableAssignees="$availableAssignees" />
 </x-app-layout>
