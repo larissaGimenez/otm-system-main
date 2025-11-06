@@ -1,7 +1,7 @@
 @props([
     'pdv',
     'externalIdCount',
-    'contractCount' => 0, // 1. ADICIONAMOS A NOVA PROP AQUI
+    // 'contractCount' => 0, // <-- REMOVIDO
 ])
 
 @php
@@ -9,7 +9,7 @@
     $photoCount = is_array($pdv->photos) ? count($pdv->photos) : 0;
     $videoCount = is_array($pdv->videos) ? count($pdv->videos) : 0;
     $mediaTotalCount = $photoCount + $videoCount;
-    $fee = $pdv->activationFee;
+    // $fee = $pdv->activationFee; // <-- REMOVIDO
     
     $tabs = [
         [
@@ -20,25 +20,9 @@
             'active' => true,
         ],
         
-        // 2. ADICIONAMOS A NOVA ABA "CONTRATOS" NO ARRAY
-        [
-            'id' => 'contracts-tab',
-            'target' => 'contracts-tab-pane',
-            'label' => "Contratos ({$contractCount})",
-            'icon' => 'bi bi-file-earmark-text-fill', // Ícone de contrato
-            'active' => false,
-        ],
-
-        [
-            'id' => 'activation-fee-tab',
-            'target' => 'activation-fee-tab-pane',
-            'label' => 'Custo Impl.',
-            'icon' => 'bi bi-cash-coin',
-            'active' => false,
-            // Adicionamos um 'badge' dinâmico
-            'badge' => $fee ? ($fee->is_paid ? 'Quitado' : 'Pendente') : null,
-            'badgeClass' => $fee ? ($fee->is_paid ? 'bg-success' : 'bg-danger') : 'bg-secondary',
-        ],
+        // ABA DE CONTRATOS REMOVIDA
+        
+        // ABA DE CUSTO DE IMPLANTAÇÃO REMOVIDA
         
         [
             'id' => 'equipments-tab',

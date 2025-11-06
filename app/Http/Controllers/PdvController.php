@@ -103,19 +103,8 @@ class PdvController extends Controller
 
     public function show(Pdv $pdv)
     {
-        // 1. Carrega os relacionamentos
-        $pdv->load([
-            'equipments',
-            'contracts' => function ($query) {
-                $query->with('monthlySales')->orderBy('signed_at', 'desc');
-            },
-            
-            // ADICIONA O NOVO RELACIONAMENTO
-            // Carrega a taxa de ativação e, para ela, carrega as parcelas
-            'activationFee.installments' => function ($query) {
-                $query->orderBy('installment_number', 'asc');
-            }
-        ]);
+        // 1. Carrega APENAS os relacionamentos que o PDV realmente tem
+        $pdv->load(['equipments']); // <-- CORRIGIDO
 
         // 2. Busca os IDs Externos
         $externalIdRecords = ExternalId::forItem($pdv->id)->latest()->get();
@@ -123,15 +112,14 @@ class PdvController extends Controller
         // 3. Busca equipamentos disponíveis
         $availableEquipments = Equipment::whereDoesntHave('pdvs')->get();
 
-        // 4. CONTA os contratos para a aba
-        $contractCount = $pdv->contracts->count();
+        // (Contagem de contrato foi removida)
 
-        // 5. Envia TODOS os dados para a view.
+        // 4. Envia os dados para a view
         return view('pdvs.show', [
-            'pdv'                   => $pdv, // Contém PDV, Equipamentos, Contratos, Faturamentos e a Taxa
-            'availableEquipments'   => $availableEquipments,
-            'externalIdRecords'     => $externalIdRecords,
-            'contractCount'         => $contractCount,
+            'pdv'                 => $pdv,
+            'availableEquipments' => $availableEquipments,
+            'externalIdRecords'   => $externalIdRecords,
+            // 'contractCount'    => REMOVIDO
         ]);
     }
 

@@ -14,9 +14,8 @@
 
             <hr>
 
-            {{-- IMPORTANTE: Seu componente de navegação precisa gerar os botões com o atributo data-bs-target correspondente aos IDs abaixo. --}}
-            {{-- Ex: <button data-bs-target="#gallery-tab-pane">...</button> --}}
-            <x-pdvs.tab-navigation :pdv="$pdv" :externalIdCount="$externalIdRecords->count()" :contractCount="$contractCount" />
+            {{-- CORREÇÃO: Removido o :contractCount --}}
+            <x-pdvs.tab-navigation :pdv="$pdv" :externalIdCount="$externalIdRecords->count()" />
 
             <div x-data class="tab-content" id="pdvs-details-tabContent">
                 
@@ -24,13 +23,11 @@
                     <x-pdvs.details :pdv="$pdv" />
                 </x-tab-content-wrapper>
 
-                <x-tab-content-wrapper id="contracts-tab-pane">
-                    <x-pdvs.contracts :pdv="$pdv" />
-                </x-tab-content-wrapper>
+                {{-- REMOVIDO: Bloco da aba de Contratos --}}
+                {{-- <x-tab-content-wrapper id="contracts-tab-pane"> ... </x-tab-content-wrapper> --}}
 
-                <x-tab-content-wrapper id="activation-fee-tab-pane">
-                    <x-pdvs.activation-fee :pdv="$pdv" />
-                </x-tab-content-wrapper>
+                {{-- REMOVIDO: Bloco da aba de Custo de Implantação --}}
+                {{-- <x-tab-content-wrapper id="activation-fee-tab-pane"> ... </x-tab-content-wrapper> --}}
 
                 <x-tab-content-wrapper id="equipments-tab-pane">
                     <x-pdvs.equipments :pdv="$pdv" />
@@ -56,6 +53,7 @@
         $createModalId = "extidCreateModal_" . substr((string) $pdv->id, 0, 8);
     @endphp
 
+    {{-- Modais de Equipamentos e IDs Externos (Estes ficam) --}}
     <x-pdvs.modals.add-equipment :pdv="$pdv" :availableEquipments="$availableEquipments" />
     <x-pdvs.modals.create-external-id :pdv="$pdv" :modalId="$createModalId" />
 
@@ -63,19 +61,21 @@
         <x-pdvs.modals.edit-external-id :ext="$ext" :pdv="$pdv" />
     @endforeach
 
-    <x-pdvs.modals.create-contract :pdv="$pdv" />
-    @foreach ($pdv->contracts as $contract)
-        <x-pdvs.modals.edit-contract :contract="$contract" />
-        <x-pdvs.modals.create-monthly-sale :contract="$contract" />
-        @foreach ($contract->monthlySales as $sale)
-            <x-pdvs.modals.edit-monthly-sale :sale="$sale" />
-        @endforeach
-    @endforeach
+    
+    {{-- =============================================== --}}
+    {{-- VVV TODOS OS MODAIS ABAIXO FORAM REMOVIDOS VVV --}}
+    {{-- =============================================== --}}
+    
+    {{-- <x-pdvs.modals.create-contract :pdv="$pdv" /> --}}
+    {{-- @foreach ($pdv->contracts as $contract) ... @endforeach --}}
 
-    <x-pdvs.modals.create-activation-fee :pdv="$pdv" />
-    @if ($pdv->activationFee)
-        <x-pdvs.modals.edit-activation-fee :fee="$pdv->activationFee" />
-    @endif
+    {{-- <x-pdvs.modals.create-activation-fee :pdv="$pdv" /> --}}
+    {{-- @if ($pdv->activationFee) ... @endif --}}
+
+    {{-- =============================================== --}}
+    {{-- ^^^ TODOS OS MODAIS ACIMA FORAM REMOVIDOS ^^^ --}}
+    {{-- =============================================== --}}
+
 
     <x-slot name="scripts">
     <script>
