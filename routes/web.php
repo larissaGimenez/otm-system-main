@@ -11,6 +11,7 @@ use App\Http\Controllers\EquipmentController;
 use App\Http\Controllers\ExternalIdController;
 use App\Http\Controllers\RequestController;
 use App\Http\Controllers\AreaController;
+use App\Http\Controllers\ContactController;
 
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\MonthlySaleController;
@@ -50,14 +51,21 @@ Route::middleware('auth')->group(function () {
        
         Route::post('{client}/activation-fee', [ActivationFeeController::class, 'store'])->name('activation-fee.store');
         Route::put('{client}/activation-fee', [ActivationFeeController::class, 'update'])->name('activation-fee.update');
-        Route::delete('{client}/activation-fee', [ActivationFeeController::class, 'destroy'])->name('activation-fee.destroy');
-
-       
+        Route::delete('{client}/activation-fee', [ActivationFeeController::class, 'destroy'])->name('activation-fee.destroy');       
         Route::post('{client}/activation-fee/installments', [ActivationFeeController::class, 'renegotiate'])->name('activation-fee.installments.store');
         Route::delete('{client}/activation-fee/installments/{installment}', [ActivationFeeController::class, 'destroyFeeInstallment'])->name('activation-fee.installments.destroy');
 
         Route::post('{client}/contracts', [ContractController::class, 'store'])->name('contracts.store');
+
+        Route::prefix('{client}/contacts')->name('contacts.')->group(function () {
+            Route::post('/', [ContactController::class, 'store'])->name('store');
+        });
     });
+
+    Route::prefix('contacts/{contact}')->name('contacts.')->group(function () {
+            Route::put('/', [ContactController::class, 'update'])->name('update');
+            Route::delete('/', [ContactController::class, 'destroy'])->name('destroy');
+        });
 
     Route::prefix('pontos-de-venda')->name('pdvs.')->group(function () {
         Route::get('/', [PdvController::class, 'index'])->name('index');

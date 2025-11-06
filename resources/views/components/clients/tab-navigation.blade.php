@@ -3,6 +3,7 @@
     'pdvCount' => 0,
     'contractCount' => 0,
     'installmentsCount' => 0,
+    'contactCount' => 0,
 ])
 
 @php
@@ -13,6 +14,13 @@
             'label' => 'Detalhes',
             'icon' => 'bi bi-info-circle-fill',
             'active' => true,
+        ],
+        [
+            'id' => 'contacts-tab',
+            'target' => 'contacts-tab-pane',
+            'label' => "Contatos ({$contactCount})",
+            'icon' => 'bi bi-person-lines-fill',
+            'active' => false,
         ],
         [
             'id' => 'pdvs-tab',

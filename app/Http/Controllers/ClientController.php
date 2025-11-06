@@ -67,12 +67,14 @@ class ClientController extends Controller
             'pdvs' => fn ($q) => $q->orderBy('name'),
             'contracts' => fn ($q) => $q->with('monthlySales')->orderByDesc('signed_at'),
             'activationFee.installments' => fn ($q) => $q->orderBy('installment_number'),
-        ])->loadCount(['pdvs', 'contracts']);
+            'contacts' => fn ($q) => $q->orderBy('name'),
+        ])->loadCount(['pdvs', 'contracts', 'contacts']);
 
         $availablePdvs = Pdv::whereNull('client_id')->orderBy('name')->get();
 
-        $pdvCount          = $client->pdvs_count;       // vindo do loadCount
-        $contractCount     = $client->contracts_count;  // vindo do loadCount
+        $pdvCount          = $client->pdvs_count;      
+        $contractCount     = $client->contracts_count;  
+        $contactCount    = $client->contacts_count;
         $installmentsCount = $client->activationFee?->installments()->count() ?? 0;
 
         return view('clients.show', compact(
@@ -80,6 +82,7 @@ class ClientController extends Controller
             'availablePdvs',
             'pdvCount',
             'contractCount',
+            'contactCount',
             'installmentsCount'
         ));
     }

@@ -18,6 +18,7 @@
                 :client="$client"
                 :pdvCount="$pdvCount"
                 :contractCount="$contractCount"
+                :contactCount="$contactCount"
                 :installmentsCount="$installmentsCount"
             />
 
@@ -27,6 +28,10 @@
                 {{-- Aba: Detalhes (ativa por padrão) --}}
                 <x-tab-content-wrapper id="details-tab-pane" :active="true">
                     <x-clients.details :client="$client" />
+                </x-tab-content-wrapper>
+
+                <x-tab-content-wrapper id="contacts-tab-pane">
+                    <x-clients.contacts :client="$client" />
                 </x-tab-content-wrapper>
 
                 {{-- Aba: PDVs --}}
@@ -77,6 +82,11 @@
         @foreach($contract->monthlySales as $sale)
             <x-clients.modals.edit-monthly-sale :sale="$sale" />
         @endforeach
+    @endforeach
+
+    <x-clients.modals.create-contact :client="$client" />
+    @foreach($client->contacts as $contact)
+        <x-clients.modals.edit-contact :contact="$contact" />
     @endforeach
 
     {{-- 5) Script: ativar aba pela hash da URL (#pdvs, #contracts, etc.) --}}

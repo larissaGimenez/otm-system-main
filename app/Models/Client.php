@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Contact;
+
 use App\Enums\Client\ClientType;
 use App\Enums\General\GeneralBanks;
 use App\Enums\General\GeneralPixType;
@@ -64,5 +66,10 @@ class Client extends Model
     public function activationFee(): HasOne
     {
         return $this->hasOne(ActivationFee::class);
+    }
+
+    public function contacts(): HasMany
+    {
+        return $this->hasMany(Contact::class);
     }
 }
