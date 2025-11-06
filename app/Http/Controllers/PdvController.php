@@ -8,6 +8,7 @@ use App\Models\ExternalId;
 
 use App\Enums\Pdv\PdvStatus;
 use App\Enums\Pdv\PdvType;
+use App\Enums\Equipment\EquipmentStatus;
 
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -204,7 +205,7 @@ class PdvController extends Controller
 
         return DB::transaction(function () use ($pdv, $data) {
             // Garante que só iremos anexar os que ainda estão "Disponível"
-            $toAttach = Equipment::available()
+            $toAttach = Equipment::available() // Isso já usa o Enum (scope)
                 ->whereIn('id', $data['equipments'])
                 ->pluck('id')
                 ->all();
@@ -215,8 +216,12 @@ class PdvController extends Controller
 
             $pdv->equipments()->syncWithoutDetaching($toAttach);
 
-            // Atualiza o status para "Em uso"
-            Equipment::whereIn('id', $toAttach)->update(['status' => 'Em uso']);
+            // --- CORREÇÃO AQUI ---
+            // Atualiza o status para "Em uso" usando o Enum
+            Equipment::whereIn('id', $toAttach)->update([
+                'status' => EquipmentStatus::IN_USE // <-- ANTES: 'Em uso'
+            ]);
+            // --- FIM DA CORREÇÃO ---
 
             $ignored = array_diff($data['equipments'], $toAttach);
 
@@ -235,7 +240,13 @@ class PdvController extends Controller
 
             // Se não estiver mais associado a NENHUM PDV, volta para "Disponível"
             if (!$equipment->pdvs()->exists()) {
-                $equipment->update(['status' => 'Disponível']);
+                
+                // --- CORREÇÃO AQUI ---
+                // Atualiza o status para "Disponível" usando o Enum
+                $equipment->update([
+                    'status' => EquipmentStatus::AVAILABLE // <-- ANTES: 'Disponível'
+                ]);
+                // --- FIM DA CORREÇÃO ---
             }
 
             return back()->with('success', 'Equipamento desassociado com sucesso.');
