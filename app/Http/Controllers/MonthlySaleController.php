@@ -23,9 +23,9 @@ class MonthlySaleController extends Controller
                 'integer', 
                 'min:1', 
                 'max:12',
-                // Validação de duplicidade: não pode ter 2 registros pro mesmo PDV, Mês e Ano
+                // CORREÇÃO: A regra unique agora usa 'contract_id'
                 Rule::unique('monthly_sales')->where(function ($query) use ($contract) {
-                    return $query->where('pdv_id', $contract->pdv_id)
+                    return $query->where('contract_id', $contract->id)
                                  ->where('year', request('year'));
                 })
             ],
@@ -34,9 +34,8 @@ class MonthlySaleController extends Controller
         ]);
 
         try {
-            // Adiciona os IDs do contrato e do PDV (para a regra 'unique' funcionar)
             $validatedData['contract_id'] = $contract->id;
-            $validatedData['pdv_id'] = $contract->pdv_id;
+            // $validatedData['pdv_id'] = $contract->pdv_id; // <-- REMOVIDO (não existe mais)
 
             MonthlySale::create($validatedData);
 
@@ -60,8 +59,9 @@ class MonthlySaleController extends Controller
                 'integer', 
                 'min:1', 
                 'max:12',
+                // CORREÇÃO: A regra unique agora usa 'contract_id'
                 Rule::unique('monthly_sales')->where(function ($query) use ($monthlySale) {
-                    return $query->where('pdv_id', $monthlySale->pdv_id)
+                    return $query->where('contract_id', $monthlySale->contract_id)
                                  ->where('year', request('year'));
                 })->ignore($monthlySale->id) // Ignora o próprio registro
             ],
@@ -77,10 +77,7 @@ class MonthlySaleController extends Controller
             return back()->with('error', 'Erro ao atualizar o faturamento.')->withInput();
         }
     }
-
-    /**
-     * Remove um faturamento.
-     */
+    
     public function destroy(MonthlySale $monthlySale): RedirectResponse
     {
         try {

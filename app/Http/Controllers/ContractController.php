@@ -2,38 +2,44 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Client; // <-- Importe o Client
 use App\Models\Contract;
-use App\Models\Pdv;
+// use App\Models\Pdv; // <-- Removido
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage; // Importe o Storage
 use Illuminate\Validation\Rule;
 
 class ContractController extends Controller
 {
     /**
-     * Armazena um novo contrato (via modal).
+     * Armazena um novo contrato.
+     * CORRIGIDO: Recebe (Request $request, Client $client)
      */
-    public function store(Request $request, Pdv $pdv): RedirectResponse
+    public function store(Request $request, Client $client): RedirectResponse
     {
         $validatedData = $request->validate([
-            'signed_at'             => ['required', 'date'],
-            'has_monthly_fee'       => ['nullable', 'boolean'],
-            'monthly_fee_value'     => ['nullable', 'required_if:has_monthly_fee,true', 'numeric', 'min:0'],
-            'monthly_fee_due_day'   => ['nullable', 'required_if:has_monthly_fee,true', 'integer', 'min:1', 'max:31'],
-            'has_commission'        => ['nullable', 'boolean'],
+            'signed_at'           => ['required', 'date'],
+            'has_monthly_fee'     => ['nullable', 'boolean'],
+            'monthly_fee_value'   => ['nullable', 'required_if:has_monthly_fee,true', 'numeric', 'min:0'],
+            'monthly_fee_due_day' => ['nullable', 'required_if:has_monthly_fee,true', 'integer', 'min:1', 'max:31'],
+            'has_commission'      => ['nullable', 'boolean'],
             'commission_percentage' => ['nullable', 'required_if:has_commission,true', 'numeric', 'min:0', 'max:100'],
-            'payment_bank_name'     => ['nullable', 'string', 'max:255'],
-            'payment_bank_agency'   => ['nullable', 'string', 'max:255'],
-            'payment_bank_account'  => ['nullable', 'string', 'max:255'],
-            'payment_pix_key'       => ['nullable', 'string', 'max:255'],
+            // Mantenha suas outras validações (bank, pix, etc.)
+            'pdf_file'            => ['nullable', 'file', 'mimes:pdf', 'max:5120'], // 5MB Max PDF
         ]);
 
         try {
-            // Adiciona o PDV ID e ajusta os booleanos (checkboxes podem não enviar 'false')
-            $validatedData['pdv_id'] = $pdv->id;
+            // CORREÇÃO: Adiciona o client_id
+            $validatedData['client_id'] = $client->id;
             $validatedData['has_monthly_fee'] = $request->boolean('has_monthly_fee');
             $validatedData['has_commission'] = $request->boolean('has_commission');
+
+            // Lógica de Upload de PDF
+            if ($request->hasFile('pdf_file')) {
+                $validatedData['pdf_path'] = $request->file('pdf_file')->store('contract_pdfs', 'public');
+            }
 
             Contract::create($validatedData);
 
@@ -50,23 +56,27 @@ class ContractController extends Controller
      */
     public function update(Request $request, Contract $contract): RedirectResponse
     {
+        // ... (Seu método update que eu enviei antes)
         $validatedData = $request->validate([
-            'signed_at'             => ['required', 'date'],
-            'has_monthly_fee'       => ['nullable', 'boolean'],
-            'monthly_fee_value'     => ['nullable', 'required_if:has_monthly_fee,true', 'numeric', 'min:0'],
-            'monthly_fee_due_day'   => ['nullable', 'required_if:has_monthly_fee,true', 'integer', 'min:1', 'max:31'],
-            'has_commission'        => ['nullable', 'boolean'],
+            'signed_at'           => ['required', 'date'],
+            'has_monthly_fee'     => ['nullable', 'boolean'],
+            'monthly_fee_value'   => ['nullable', 'required_if:has_monthly_fee,true', 'numeric', 'min:0'],
+            'monthly_fee_due_day' => ['nullable', 'required_if:has_monthly_fee,true', 'integer', 'min:1', 'max:31'],
+            'has_commission'      => ['nullable', 'boolean'],
             'commission_percentage' => ['nullable', 'required_if:has_commission,true', 'numeric', 'min:0', 'max:100'],
-            'payment_bank_name'     => ['nullable', 'string', 'max:255'],
-            'payment_bank_agency'   => ['nullable', 'string', 'max:255'],
-            'payment_bank_account'  => ['nullable', 'string', 'max:255'],
-            'payment_pix_key'       => ['nullable', 'string', 'max:255'],
+            'pdf_file'            => ['nullable', 'file', 'mimes:pdf', 'max:5120'],
         ]);
 
         try {
-            // Ajusta os booleanos (checkboxes podem não enviar 'false')
             $validatedData['has_monthly_fee'] = $request->boolean('has_monthly_fee');
             $validatedData['has_commission'] = $request->boolean('has_commission');
+
+            if ($request->hasFile('pdf_file')) {
+                if ($contract->pdf_path) {
+                    Storage::disk('public')->delete($contract->pdf_path);
+                }
+                $validatedData['pdf_path'] = $request->file('pdf_file')->store('contract_pdfs', 'public');
+            }
 
             $contract->update($validatedData);
 
@@ -83,12 +93,12 @@ class ContractController extends Controller
      */
     public function destroy(Contract $contract): RedirectResponse
     {
+        // ... (Seu método destroy que eu enviei antes)
         try {
-            // Adicionar verificação de policy se necessário
-            // $this->authorize('delete', $contract);
-
+            if ($contract->pdf_path) {
+                Storage::disk('public')->delete($contract->pdf_path);
+            }
             $contract->delete(); // Soft delete
-
             return back()->with('success', 'Contrato removido com sucesso.');
         } catch (\Throwable $e) {
             Log::error('Falha ao remover contrato: ' . $e->getMessage());

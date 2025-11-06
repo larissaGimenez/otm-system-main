@@ -21,6 +21,7 @@ class Contract extends Model
         'monthly_fee_due_day',
         'has_commission',
         'commission_percentage',
+        'pdf_path', // <-- ADICIONADO
     ];
 
     protected $casts = [
@@ -46,16 +47,7 @@ class Contract extends Model
     {
         return $this->hasMany(MonthlySale::class);
     }
-
-    /**
-     * 💡 Acessor auxiliar: calcula o valor da comissão (para exibição).
-     */
-    public function getCommissionValueAttribute(): ?float
-    {
-        if (!$this->has_commission || !$this->commission_percentage || !$this->monthly_fee_value) {
-            return null;
-        }
-
-        return ($this->monthly_fee_value * $this->commission_percentage) / 100;
-    }
+    
+    // O accessor 'getCommissionValueAttribute' foi removido
+    // pois o Model 'MonthlySale' já calcula isso.
 }

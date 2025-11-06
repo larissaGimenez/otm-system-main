@@ -9,12 +9,6 @@ use App\Models\ExternalId;
 use App\Enums\Pdv\PdvStatus;
 use App\Enums\Pdv\PdvType;
 
-use App\Models\Contract; 
-use App\Models\MonthlySale;
-
-use App\Models\ActivationFee; 
-use App\Models\FeeInstallment;
-
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;

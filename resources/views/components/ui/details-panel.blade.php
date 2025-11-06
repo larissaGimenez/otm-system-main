@@ -4,11 +4,6 @@
     'emptyText' => 'Não informado',
 ])
 
-{{-- 
-    COMPONENTE DE APRESENTAÇÃO (UI)
-    Note que não há nenhuma menção a 'PDV' ou qualquer outra entidade aqui.
-    Ele é 100% reutilizável.
---}}
 <div class="card border-0 shadow-sm">
     <div class="card-body">
         @if($title)
@@ -31,6 +26,10 @@
                 @php
                     $label = $row['label'] ?? '';
                     $value = $row['value'] ?? null;
+                    
+                    // --- 1. ADICIONAMOS A FLAG 'HTML' ---
+                    $isHtml = $row['html'] ?? false; 
+
                     $isLast = $i === (count($rows) - 1);
                     $isEmpty = $value === null || (is_string($value) && trim($value) === '');
                 @endphp
@@ -39,7 +38,17 @@
                         <strong>{{ $label }}</strong>
                     </div>
                     <div class="col-md-9">
-                        {{ $isEmpty ? $emptyText : $value }}
+                        
+                        {{-- --- 2. ADICIONAMOS A LÓGICA DE RENDERIZAÇÃO --- --}}
+                        @if ($isEmpty)
+                            <span class="text-muted">{{ $emptyText }}</span>
+                        @elseif ($isHtml)
+                            {!! $value !!} {{-- Renderiza HTML --}}
+                        @else
+                            {{ $value }} {{-- Renderiza Texto (Seguro) --}}
+                        @endif
+                        {{-- --- FIM DA ALTERAÇÃO --- --}}
+
                     </div>
                 </div>
             @empty

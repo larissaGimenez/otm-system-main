@@ -19,6 +19,7 @@ return new class extends Migration
             $table->unsignedTinyInteger('monthly_fee_due_day')->nullable();
             $table->boolean('has_commission')->default(false);
             $table->decimal('commission_percentage', 5, 2)->nullable();
+            $table->string('pdf_path')->nullable();
             $table->timestamps();
             $table->softDeletes();
             $table->index(['client_id', 'signed_at']);

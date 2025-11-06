@@ -7,6 +7,7 @@
     formAction="{{ route('contracts.update', $contract) }}"
     formMethod="PUT"
     size="lg"
+    enctype="multipart/form-data"
 >
     <div
         x-data="{
@@ -111,6 +112,26 @@
                 >
                 <label for="commission_percentage_{{ $contract->id }}">Percentual de Repasse (%)</label>
             </div>
+        </div>
+
+        <h6 class="card-title text-muted small text-uppercase mt-2">Anexo (PDF)</h6>
+        <div class="mb-3">
+            <label for="pdf_file_{{ $contract->id }}" class="form-label">Substituir Anexo (PDF)</label>
+            <input 
+                class="form-control" 
+                type="file" 
+                id="pdf_file_{{ $contract->id }}" 
+                name="pdf_file"
+                accept=".pdf"
+            >
+            @if ($contract->pdf_path)
+                <div class="form-text mt-2">
+                    <a href="{{ asset('storage/' . $contract->pdf_path) }}" target="_blank">
+                        <i class="bi bi-file-earmark-pdf"></i> 
+                        Ver anexo atual
+                    </a>
+                </div>
+            @endif
         </div>
     </div>
 </x-ui.form-modal>

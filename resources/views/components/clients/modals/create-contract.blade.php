@@ -6,7 +6,20 @@
     title="Adicionar Novo Contrato"
     formAction="{{ route('clients.contracts.store', $client) }}"
     size="lg"
+    enctype="multipart/form-data"
 >
+
+@if ($errors->any())
+        <div class="alert alert-danger mb-3">
+            <h6 class="alert-heading">Opa! Algo deu errado:</h6>
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+    
     <div x-data="{ has_fee: false, has_commission: false }">
         <div class="row">
             <div class="col-12 mb-3">
@@ -100,6 +113,18 @@
                 >
                 <label for="commission_percentage_{{ $client->id }}">Percentual de Repasse (%)</label>
             </div>
+        </div>
+
+        <h6 class="card-title text-muted small text-uppercase mt-2">Anexo (PDF)</h6>
+        <div class="mb-3">
+            <label for="pdf_file_{{ $client->id }}" class="form-label">Anexar Contrato (PDF)</label>
+            <input 
+                class="form-control" 
+                type="file" 
+                id="pdf_file_{{ $client->id }}" 
+                name="pdf_file"
+                accept=".pdf"
+            >
         </div>
     </div>
 </x-ui.form-modal>

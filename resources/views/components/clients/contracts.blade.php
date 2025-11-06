@@ -31,8 +31,14 @@
                     'title' => 'Termos do Contrato',
                     'rows' => [
                         ['label' => 'Data Assinatura', 'value' => $signedAt],
-                        // ajuste se você tiver um campo "number" próprio para contrato
                         ['label' => 'Nº Contrato', 'value' => $contract->number ?? $contract->id],
+                        [
+                            'label' => 'Anexo', 
+                            'value' => $contract->pdf_path 
+                                ? '<a href="' . asset('storage/' . $contract->pdf_path) . '" target="_blank">Ver PDF <i class="bi bi-box-arrow-up-right"></i></a>' 
+                                : '—',
+                            'html' => true
+                        ],
                     ],
                 ],
                 [
@@ -43,15 +49,6 @@
                         ['label' => 'Dia Vencimento', 'value' => $hasMonthly ? ('Dia ' . ($contract->monthly_fee_due_day ?? '—')) : null],
                         ['label' => 'Repasse (Comissão)', 'value' => $hasCommission ? 'Sim' : 'Não'],
                         ['label' => '% Repasse', 'value' => $hasCommission ? (($contract->commission_percentage ?? 0) . '%') : null],
-                    ],
-                ],
-                [
-                    'title' => 'Dados de Pagamento',
-                    'rows' => [
-                        ['label' => 'Banco', 'value' => $contract->payment_bank_name ?? '—'],
-                        ['label' => 'Agência', 'value' => $contract->payment_bank_agency ?? '—'],
-                        ['label' => 'Conta', 'value' => $contract->payment_bank_account ?? '—'],
-                        ['label' => 'Chave PIX', 'value' => $contract->payment_pix_key ?? '—'],
                     ],
                 ],
             ];

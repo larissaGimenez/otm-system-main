@@ -5,6 +5,7 @@
     'formMethod' => 'POST',
     'submitText' => 'Salvar',
     'size' => '',
+    'enctype' => null,
 ])
 
 @php
@@ -21,7 +22,7 @@
     <div class="modal-dialog {{ $sizeClass }}">
         <div class="modal-content">
             {{-- 1. Adicionamos x-data e @submit ao formulário --}}
-            <form x-data="{ submitting: false }" @submit="submitting = true" action="{{ $formAction }}" method="{{ $htmlFormMethod }}">
+            <form x-data="{ submitting: false }" @submit="submitting = true" action="{{ $formAction }}" method="{{ $htmlFormMethod }}" @if($enctype) enctype="{{ $enctype }}" @endif>
                 @csrf
                 @if ($htmlFormMethod !== strtoupper($formMethod))
                     @method($formMethod)
