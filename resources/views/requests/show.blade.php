@@ -3,23 +3,23 @@
     <x-ui.flash-message />
 
     <x-slot name="header">
-        <div class="container-fluid px-0 col-lg-11 mx-auto">
+        <div class="container-fluid px-0 col-lg-12 mx-auto">
             <div class="row align-items-start g-2">
                 <div class="col-12">
                     <h2 class="fw-bold mb-1 text-break text-wrap fs-5 fs-md-4 fs-lg-3">
-                        {{ $request->title }}
+                        Detalhes do Chamado
                     </h2>
                 </div>
             </div>
         </div>
     </x-slot>
 
-    <div class="col-lg-11 mx-auto">
+    <div class="col-lg-12 mx-auto">
         <div class="row">
-            <div class="col-lg-8">
+            <div class="col-lg-6">
                 <div class="card shadow-sm border-0 mb-3">
                     <div class="card-body p-4 p-md-5">
-                        <h5 class="card-title text-muted small text-uppercase mb-3">Descrição</h5>
+                        <p class="card-title fw-bold mb-4">{{ $request->title }}</p>
 
                         @if($request->description)
                             <div class="text-dark" style=" word-break: break-all;">
@@ -43,7 +43,7 @@
                 </div>
             </div>
 
-            <div class="col-lg-4">
+            <div class="col-lg-3">
                 <div class="card shadow-sm border-0 mb-3">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center mb-4">
