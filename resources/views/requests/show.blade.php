@@ -57,6 +57,10 @@
                             <strong>{{ $request->type->getLabel() }}</strong>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                            PDV:
+                            <strong>{{ $request->pdv->name ?? 'N/A' }}</strong>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0">
                             Área:
                             <strong>{{ $request->area->name }}</strong>
                         </li>

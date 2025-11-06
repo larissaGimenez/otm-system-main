@@ -15,6 +15,7 @@
     <x-slot:tableHeader>
         <tr class="text-muted small">
             <th scope="col" class="py-3">TÍTULO</th>
+            <th scope="col" class="py-3">PDV</th>
             <th scope="col" class="py-3">ÁREA</th>
             <th scope="col" class="py-3">REQUISITANTE</th>
             <th scope="col" class="py-3">STATUS</th>
@@ -29,6 +30,7 @@
         {{-- Usamos $requestItem para evitar conflito com a variável global $request --}}
         <tr class="border-bottom" data-href="{{ route('requests.show', $requestItem) }}">
             <td class="py-3 fw-bold">{{ $requestItem->title }}</td>
+            <td class="py-3">{{ $requestItem->pdv->name ?? 'N/A' }}</td>
             <td class="py-3">{{ $requestItem->area->name ?? 'N/A' }}</td>
             <td class="py-3">{{ $requestItem->requester->name ?? 'N/A' }}</td>
             <td class="py-3">

@@ -60,6 +60,19 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
+                        <label for="pdv_id" class="form-label">PDV (Opcional)</label>
+                        <select class="form-select @error('pdv_id') is-invalid @enderror" id="pdv_id" name="pdv_id">
+                            <option value="" selected>Nenhum PDV específico...</option>
+                            @foreach ($pdvs as $pdv)
+                                <option value="{{ $pdv->id }}" {{ old('pdv_id') == $pdv->id ? 'selected' : '' }}>
+                                    {{ $pdv->name }} ({{ $pdv->client?->name ?? 'Sem Cliente' }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('pdv_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div class="col-md-6 mb-3">
                         <label for="type" class="form-label">Tipo <span class="text-danger">*</span></label>
                         <select class="form-select @error('type') is-invalid @enderror" id="type" name="type" required>
                             <option value="" disabled selected>Selecione o tipo...</option>

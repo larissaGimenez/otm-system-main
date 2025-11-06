@@ -9,8 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-// use Illuminate\Database\Eloquent\Relations\HasMany; // Removido (Contracts)
-// use Illuminate\Database\Eloquent\Relations\HasOne; // Removido (ActivationFee)
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Pdv extends Model
@@ -48,5 +47,8 @@ class Pdv extends Model
         return $this->belongsTo(Client::class, 'client_id');
     }
 
-    // RELACIONAMENTOS DE CONTRACT E ACTIVATION FEE REMOVIDOS DAQUI
+    public function requests(): HasMany
+    {
+        return $this->hasMany(Request::class);
+    }
 }

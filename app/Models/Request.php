@@ -26,6 +26,7 @@ class Request extends Model
         'area_id',
         'requester_id',
         'due_at',
+        'pdv_id',
         'attachment_path',           
         'attachment_original_name',   
     ];
@@ -60,5 +61,10 @@ class Request extends Model
     {
         return $this->belongsToMany(User::class, 'request_user')
             ->withTimestamps();
+    }
+
+    public function pdv(): BelongsTo
+    {
+        return $this->belongsTo(Pdv::class);
     }
 }

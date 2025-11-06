@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Request;
 use App\Models\Area;
 use App\Models\User;
+use App\Models\Pdv;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Enums\Request\RequestPriority;
 use App\Enums\Request\RequestStatus;
@@ -25,7 +26,7 @@ class RequestController extends Controller
     {
         $this->authorize('viewAny', Request::class);
 
-        $query = Request::with(['area', 'requester', 'assignees']);
+        $query = Request::with(['area', 'requester', 'assignees', 'pdv']);
 
         $user = Auth::user();
         if ($user->role !== 'admin') {
@@ -44,7 +45,8 @@ class RequestController extends Controller
                 $q->where('title', 'like', $searchTerm)
                     ->orWhere('description', 'like', $searchTerm)
                     ->orWhereRelation('area', 'name', 'like', $searchTerm)
-                    ->orWhereRelation('requester', 'name', 'like', $searchTerm);
+                    ->orWhereRelation('requester', 'name', 'like', $searchTerm)
+                    ->orWhereRelation('pdv', 'name', 'like', $searchTerm);
             });
         }
 
@@ -58,9 +60,11 @@ class RequestController extends Controller
         $this->authorize('create', Request::class);
 
         $areas = Area::orderBy('name')->get();
+        $pdvs = Pdv::orderBy('name')->get();
 
         return view('requests.create', [
             'areas'      => $areas,
+            'pdvs'       => $pdvs,
             'types'      => RequestType::cases(),
             'priorities' => RequestPriority::cases(),
             'statuses'   => RequestStatus::cases(),
@@ -75,6 +79,7 @@ class RequestController extends Controller
             'title'       => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'area_id'     => ['required', 'uuid', 'exists:areas,id'],
+            'pdv_id'      => ['nullable', 'uuid', 'exists:pdvs,id'],
             'type'        => ['required', Rule::in(array_column(RequestType::cases(), 'value'))],
             'priority'    => ['required', Rule::in(array_column(RequestPriority::cases(), 'value'))],
             'status'      => ['required', Rule::in(array_column(RequestStatus::cases(), 'value'))],
@@ -106,7 +111,7 @@ class RequestController extends Controller
     {
         $this->authorize('view', $request);
 
-        $request->load(['area', 'requester', 'assignees']);
+        $request->load(['area', 'requester', 'assignees', 'pdv']);
 
         $areaWithUsers = Area::with('teams.users')->find($request->area_id);
         $availableAssignees = collect();
@@ -126,10 +131,12 @@ class RequestController extends Controller
         $this->authorize('update', $request);
 
         $areas = Area::orderBy('name')->get();
+        $pdvs = Pdv::orderBy('name')->get();
 
         return view('requests.edit', [
             'request'    => $request,
             'areas'      => $areas,
+            'pdvs'       => $pdvs,
             'types'      => RequestType::cases(),
             'priorities' => RequestPriority::cases(),
             'statuses'   => RequestStatus::cases(),
@@ -144,6 +151,7 @@ class RequestController extends Controller
             'title'       => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'area_id'     => ['required', 'uuid', 'exists:areas,id'],
+            'pdv_id'      => ['nullable', 'uuid', 'exists:pdvs,id'],
             'type'        => ['required', Rule::in(array_column(RequestType::cases(), 'value'))],
             'priority'    => ['required', Rule::in(array_column(RequestPriority::cases(), 'value'))],
             'status'      => ['required', Rule::in(array_column(RequestStatus::cases(), 'value'))],

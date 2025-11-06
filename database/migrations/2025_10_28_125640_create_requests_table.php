@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('type');
             $table->string('priority');
             $table->string('status');
+            $table->foreignUuid('pdv_id')->nullable()->nullOnDelete();
             $table->foreignUuid('area_id')->constrained('areas');
             $table->foreignUuid('requester_id')->constrained('users');
             $table->dateTime('due_at')->nullable();
