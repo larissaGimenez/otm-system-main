@@ -69,7 +69,9 @@
                         <div class="row mb-3">
                             <label class="col-4 col-form-label text-muted fw-bold small">Status</label>
                             <div class="col-8">
-                                <span class="badge bg-primary rounded-pill">{{ $request->status->getLabel() }}</span>
+                                <span class="badge rounded-pill bg-{{ $request->status->colors() }}">
+                                    {{ $request->status->getLabel() }}
+                                </span>
                             </div>
                         </div>
 

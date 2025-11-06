@@ -20,4 +20,15 @@ enum RequestStatus: string
             self::CANCELED => 'Cancelado',
         };
     }
+
+    public function colors(): string
+    {
+        return match ($this) {
+            self::OPEN => 'primary',        // Azul para 'Aberto'
+            self::IN_PROGRESS => 'warning',    // Amarelo para 'Em andamento'
+            self::RESOLVED => 'success',    // Verde para 'Resolvido'
+            self::CLOSED => 'secondary',    // Cinza para 'Fechado'
+            self::CANCELED => 'danger',     // Vermelho para 'Cancelado'
+        };
+    }
 }
