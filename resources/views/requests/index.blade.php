@@ -16,10 +16,6 @@
 
     <x-ui.flash-message />
 
-    {{-- 
-      REMOVEMOS o <div class="container-fluid"> daqui.
-      O componente Livewire agora controla seu próprio layout.
-    --}}
     @livewire('requests-kanban')
     
 </x-app-layout>

@@ -21,7 +21,7 @@
 
         /* Container principal do app */
         #app {
-            height: 100vh;
+            height: 100%;
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -115,7 +115,7 @@
 
             <div id="content-wrapper">
                 @if (isset($header))
-                    <header class="mb-3">
+                    <header class="mb-3 mt-4">
                         {{ $header }}
                     </header>
                 @endif
