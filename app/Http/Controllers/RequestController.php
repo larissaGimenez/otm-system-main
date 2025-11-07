@@ -22,37 +22,9 @@ class RequestController extends Controller
 {
     use AuthorizesRequests;
 
-    public function index(HttpRequest $request): View
+    public function index()
     {
-        $this->authorize('viewAny', Request::class);
-
-        $query = Request::with(['area', 'requester', 'assignees', 'pdv']);
-
-        $user = Auth::user();
-        if ($user->role !== 'admin') {
-            $user->loadMissing('teams.area');
-            $userAreaIds = $user->teams->pluck('area_id')->filter()->unique()->all();
-
-            $query->where(function ($q) use ($user, $userAreaIds) {
-                $q->where('requester_id', $user->id)
-                    ->orWhereIn('area_id', $userAreaIds);
-            });
-        }
-
-        if ($request->filled('search')) {
-            $searchTerm = '%' . $request->input('search') . '%';
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('title', 'like', $searchTerm)
-                    ->orWhere('description', 'like', $searchTerm)
-                    ->orWhereRelation('area', 'name', 'like', $searchTerm)
-                    ->orWhereRelation('requester', 'name', 'like', $searchTerm)
-                    ->orWhereRelation('pdv', 'name', 'like', $searchTerm);
-            });
-        }
-
-        $requests = $query->latest()->paginate(15);
-
-        return view('requests.index', compact('requests'));
+        return view('requests.index');
     }
 
     public function create(): View

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-100">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,40 +11,83 @@
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.css" rel="stylesheet">
 
     <style>
-        :root {
-            --sidebar-width: 280px;
+        /* CRÍTICO: HTML e BODY devem ter 100% de altura */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
         }
-        body {
-            overflow-x: hidden;
-        }
-        .wrapper {
+
+        /* Container principal do app */
+        #app {
+            height: 100vh;
+            width: 100%;
             display: flex;
-            width: 100%;
-            min-height: calc(100vh - 56px);
-            align-items: stretch;
+            flex-direction: column;
         }
+
+        /* Navigation (se houver) */
+        #app > nav {
+            flex-shrink: 0;
+        }
+
+        /* Wrapper da aplicação */
+        .wrapper {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+            /* overflow: hidden; */
+            width: 100%;
+        }
+
+        /* Sidebar */
         #sidebar {
-            min-width: var(--sidebar-width);
-            max-width: var(--sidebar-width);
+            width: 280px;
+            flex-shrink: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
             transition: margin-left 0.35s ease-in-out;
-            margin-left: 0;
         }
+
         .sidebar-toggled #sidebar {
-            margin-left: calc(-1 * var(--sidebar-width));
+            margin-left: -280px;
         }
+
+        /* Content Wrapper */
         #content-wrapper {
-            width: 100%;
-            transition: width 0.35s ease-in-out;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            overflow: hidden;
         }
+
+        /* Header */
+        #content-wrapper > header {
+            flex-shrink: 0;
+        }
+
+        /* Main - Área que pode rolar */
+        #content-wrapper > main {
+            flex: 1;
+            overflow: auto;
+            min-height: 0;
+        }
+
+        /* Estilos da Sidebar */
         #sidebar .nav-link:not(.active):hover {
             background-color: #e9ecef;
         }
+
         #sidebar .dropdown-toggle::after {
             transition: transform 0.3s ease-in-out;
         }
+
         #sidebar .dropdown-toggle:not(.collapsed)::after {
             transform: rotate(180deg);
         }
+
         #sidebar .nav-link-sub {
             font-size: 0.800rem; 
             color: #6c757d; 
@@ -59,29 +102,33 @@
             font-weight: bold;
         }
     </style>
+@livewireStyles
 
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
 </head>
-<body class="font-sans antialiased bg-light">
-    <div>
+<body class="h-100">
+    <div id="app" class="h-100">
         @include('layouts.navigation')
 
         <div class="wrapper">
             @include('layouts.sidebar')
 
-            <main id="content-wrapper" class="p-4">
+            <div id="content-wrapper">
                 @if (isset($header))
-                    <header class="mb-4">
-                        <div>{{ $header }}</div>
+                    <header class="mb-3">
+                        {{ $header }}
                     </header>
                 @endif
                 
-                {{ $slot }}
-            </main>
+                <main>
+                    {{ $slot }}
+                </main>
+            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -107,7 +154,7 @@
             });
         });
     </script>
-
+@livewireScripts
     @stack('scripts')
 </body>
 </html>

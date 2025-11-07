@@ -20,30 +20,80 @@ $breadcrumb-divider: quote(">");
 
 
 // ===================================================================
-// 3. NOSSAS CLASSES GLOBAIS DE TIPOGRAFIA E ESTILO
+// 3. LAYOUT PRINCIPAL - ESTRUTURA DE 100vh
 // ===================================================================
+html, body {
+    height: 100vh;
+    max-height: 100vh;
+    
+    margin: 0;
+    padding: 0;
+}
 
-// Aplica a fonte Nunito a todo o sistema
 body {
     font-family: 'Nunito', sans-serif;
+    display: flex;
+    flex-direction: row; /* Sidebar + Main lado a lado */
 }
+
+// ===================================================================
+// 4. SIDEBAR (Fixa e Rolável)
+// ===================================================================
+#sidebar {
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex-shrink: 0;
+    width: 280px;
+}
+
+// ===================================================================
+// 5. MAIN CONTENT WRAPPER (Área Principal)
+// ===================================================================
+#main-content-wrapper {
+    height: 100vh;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    
+    // O Header (slot 'header')
+    header {
+        flex-shrink: 0; /* Altura fixa baseada no conteúdo */
+        z-index: 10; /* Garante que fique acima do conteúdo */
+    }
+    
+    // O Conteúdo Principal (slot 'main')
+    main {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* CRÍTICO: não permite rolagem aqui */
+        min-height: 0; /* IMPORTANTE: permite que flex-children encolham */
+    }
+}
+
+
+// ===================================================================
+// 6. CLASSES GLOBAIS DE TIPOGRAFIA E ESTILO
+// ===================================================================
 
 // Classe para o título principal de cada página
 .title-main {
-    font-size: 1.75rem; // Tamanho do título (h2)
-    font-weight: 700;   // Negrito
+    font-size: 1.75rem;
+    font-weight: 700;
 }
 
 // Classe para títulos de seção dentro de uma página
 .title-section {
-    font-size: 1.25rem; // Tamanho do subtítulo (h5)
+    font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 1.25rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #dee2e6; // Linha separadora sutil
+    border-bottom: 1px solid #dee2e6;
 }
 
-// Nossa classe para labels de formulário (mantida e melhorada)
+// Labels de formulário minimalistas
 .form-label-minimal {
     font-size: 0.7em;
     font-weight: 700;
@@ -52,6 +102,98 @@ body {
     text-transform: uppercase;
 }
 
+
+// ===================================================================
+// 7. KANBAN - ESTILOS ESPECÍFICOS
+// ===================================================================
+
+// Container principal do Kanban
+#kanban-container {
+    -webkit-overflow-scrolling: touch;
+}
+
+// Coluna do Kanban
+.kanban-column {
+    flex-shrink: 0;
+}
+
+// Corpo da coluna (onde ficam os cards)
+.kanban-column-body {
+    min-height: 200px;
+    
+    // Scrollbar customizada (Chrome/Safari)
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    &::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+        
+        &:hover {
+            background: #a8a8a8;
+        }
+    }
+}
+
+// Card individual no Kanban
+.kanban-card {
+    cursor: grab !important;
+    transition: all 0.2s ease;
+    user-select: none;
+    
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    &:active {
+        cursor: grabbing !important;
+    }
+}
+
+// Card sendo arrastado
+.kanban-dragging {
+    opacity: 0.6;
+    transform: rotate(3deg);
+}
+
+// Card "fantasma" (placeholder durante o drag)
+.kanban-ghost-card {
+    opacity: 0.4;
+    background: #e3f2fd !important;
+    border: 2px dashed #2196f3 !important;
+}
+
+// Scrollbar horizontal do container
+#kanban-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+#kanban-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#kanban-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+    
+    &:hover {
+        background: #555;
+    }
+}
+
+// ===================================================================
+// 8. AVATARES
+// ===================================================================
+
+// Avatar padrão (32px)
 .avatar-initials {
     display: inline-flex;
     align-items: center;
@@ -64,12 +206,80 @@ body {
     text-transform: uppercase;
 }
 
+// Avatar pequeno (28px) - usado nos cards do Kanban
+.avatar-initials-small {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-left: -8px;
+    border: 2px solid white;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3);
+    
+    &:first-child {
+        margin-left: 0;
+    }
+}
+
+
+// ===================================================================
+// 9. ANIMAÇÕES
+// ===================================================================
+
 // Animação do ícone da welcome page
 @keyframes float {
     0% { transform: translateY(0px); }
     50% { transform: translateY(-8px); }
     100% { transform: translateY(0px); }
 }
+
 .icon-float {
     animation: float 2s ease-in-out infinite;
+}
+
+
+// ===================================================================
+// 10. MELHORIAS DE SCROLLBAR (Opcional)
+// ===================================================================
+
+/* Estilização customizada da scrollbar (Chrome/Safari) */
+.kanban-column-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.kanban-column-body::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.kanban-column-body::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+    
+    &:hover {
+        background: #555;
+    }
+}
+
+// Scrollbar horizontal do painel Kanban
+.overflow-auto::-webkit-scrollbar {
+    height: 8px;
+}
+
+.overflow-auto::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.overflow-auto::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+    
+    &:hover {
+        background: #555;
+    }
 }
