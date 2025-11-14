@@ -5,7 +5,7 @@
         </button>
         
         <a class="navbar-brand me-auto" href="{{ route('home') }}">
-            <img src="{{ asset('images/logo_otm_tech.png') }}" alt="Logo" style="height: 30px;">
+            <img src="{{ asset('images/logo_boxfarma.png') }}" alt="Logo" style="height: 30px;">
         </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">

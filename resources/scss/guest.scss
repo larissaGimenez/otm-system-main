@@ -1,0 +1,20 @@
+// ===================================================================
+// GUEST LAYOUT CSS (Login, Registro, etc.)
+// ===================================================================
+
+// 1. Importa a fonte
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap');
+
+// 2. Define variáveis (Opcional, mas bom para consistência)
+$primary: #4080f6; // Sua cor primária
+$body-bg: #f8f9fa; // Cor de fundo (bg-light)
+$font-family-sans-serif: 'Nunito', sans-serif;
+
+// 3. Importa o Bootstrap (só o que é necessário)
+@import "~bootstrap/scss/bootstrap";
+
+// 4. Estilos de base para o guest
+body {
+    font-family: $font-family-sans-serif;
+    background-color: $body-bg;
+}

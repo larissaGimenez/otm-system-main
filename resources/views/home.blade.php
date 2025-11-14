@@ -1,6 +1,6 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="h4 font-weight-bold">
+        <h2 class="h4 font-weight-bold ms-2">
             Página Inicial
         </h2>
     </x-slot>
@@ -8,7 +8,7 @@
     <x-ui.flash-message />
 
     {{-- 1. Mensagem de Boas-vindas (Estilo "E-commerce Dashboard") --}}
-    <div class="mb-4">
+    <div class="mb-4 ms-2">
         <h3 class="fw-bold">Olá, {{ $user->name }}! 👋</h3>
         <p class="text-muted">
             Veja o que está acontecendo no seu painel.

@@ -17,13 +17,12 @@
 
         <div class="mb-3">
             <x-input-label for="password" :value="__('Password')" />
-            {{-- Adicionamos o mesmo Input Group com ícone da tela de registro --}}
             <div class="input-group">
                 <x-text-input id="password"
-                                type="password"
-                                name="password"
-                                required autocomplete="current-password"
-                                :messages="$errors->get('password')" />
+                              type="password"
+                              name="password"
+                              required autocomplete="current-password"
+                              :messages="$errors->get('password')" />
                 <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                     <i class="bi bi-eye-slash-fill"></i>
                 </button>
@@ -32,7 +31,6 @@
         </div>
 
         <div class="d-flex justify-content-between align-items-center mb-4">
-            {{-- Convertido para o padrão de checkbox do Bootstrap --}}
             <div class="form-check">
                 <input id="remember_me" type="checkbox" class="form-check-input" name="remember">
                 <label for="remember_me" class="form-check-label text-muted small">
@@ -53,14 +51,7 @@
             </x-primary-button>
         </div>
 
-        {{-- COLOQUE ISTO NO LUGAR --}}
-        <div class="text-center mt-4 pt-3 border-top">
-            <p class="text-muted small">
-                {{ __("Don't have an account?") }}
-                <a href="{{ route('register') }}" class="fw-bold text-primary text-decoration-none">
-                    {{ __('Register') }}
-                </a>
-            </p>
-        </div>
+        {{-- O Bloco de Registro foi removido daqui --}}
+
     </form>
 </x-guest-layout>
