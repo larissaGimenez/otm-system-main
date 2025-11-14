@@ -26,6 +26,8 @@ RUN apt-get update && apt-get install -y \
     libwebp-dev \
     libonig-dev \
     libzip-dev \
+    libicu-dev \
+    libsodium-dev \
     zip unzip git \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install \
@@ -36,6 +38,8 @@ RUN apt-get update && apt-get install -y \
         gd \
         zip \
         mbstring \
+        intl \
+        sodium \
     && rm -rf /var/lib/apt/lists/*
 
 # Composer
