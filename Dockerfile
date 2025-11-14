@@ -56,8 +56,8 @@ RUN composer install \
     --no-interaction \
     --prefer-dist \
     --ignore-platform-reqs \
-    **--no-autoloader \**
-    **--no-scripts**
+    --no-autoloader \
+    --no-scripts
 
 # 2. Copiar código da aplicação (agora o 'artisan' existe)
 COPY . .
