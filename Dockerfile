@@ -28,7 +28,14 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     zip unzip git \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install pdo pdo_mysql bcmath exif gd \
+    && docker-php-ext-install \
+        pdo \
+        pdo_mysql \
+        bcmath \
+        exif \
+        gd \
+        zip \
+        mbstring \
     && rm -rf /var/lib/apt/lists/*
 
 # Composer
