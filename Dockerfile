@@ -18,7 +18,11 @@ FROM php:8.2-fpm AS app
 
 WORKDIR /var/www/html
 
-# Dependências de sistema para extensões PHP (incluindo GD)
+# Variáveis para o Composer
+ENV COMPOSER_ALLOW_SUPERUSER=1 \
+    COMPOSER_MEMORY_LIMIT=-1
+
+# Dependências de sistema para extensões PHP (incluindo GD, intl, zip, sodium, etc.)
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -47,7 +51,12 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Instalar dependências PHP
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+RUN composer install \
+    --no-dev \
+    --optimize-autoloader \
+    --no-interaction \
+    --prefer-dist \
+    --ignore-platform-reqs
 
 # Copiar código da aplicação
 COPY . .
@@ -57,7 +66,7 @@ COPY --chown=www-data:www-data --from=frontend_builder /app/public ./public
 
 # Permissões para Laravel
 RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
+    && chmod -R 775 storage/bootstrap/cache
 
 EXPOSE 9000
 
