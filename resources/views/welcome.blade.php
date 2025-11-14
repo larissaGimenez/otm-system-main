@@ -12,7 +12,7 @@
     @vite(['resources/scss/app.scss', 'resources/js/app.js'])
 </head>
 
-<body class="antialiased bg-light d-flex flex-column min-vh-100">
+<body class="antialiased bg-light d-flex flex-column min-vh-100"> 
     <header class="container py-3">
         {{-- MUDANÇA SUTIL: Removido d-flex e justify-content-end, pois o nav já faz isso --}}
         @if (Route::has('login'))
