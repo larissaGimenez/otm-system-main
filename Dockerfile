@@ -22,7 +22,7 @@ WORKDIR /var/www/html
 ENV COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_MEMORY_LIMIT=-1
 
-# Dependências de sistema para extensões PHP (incluindo GD, intl, zip, sodium, etc.)
+# Dependências de sistema...
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
@@ -49,24 +49,29 @@ RUN apt-get update && apt-get install -y \
 # Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Instalar dependências PHP
+# 1. Instalar dependências PHP (sem scripts e sem autoloader)
 COPY composer.json composer.lock ./
 RUN composer install \
     --no-dev \
-    --optimize-autoloader \
     --no-interaction \
     --prefer-dist \
-    --ignore-platform-reqs
+    --ignore-platform-reqs \
+    **--no-autoloader \**
+    **--no-scripts**
 
-# Copiar código da aplicação
+# 2. Copiar código da aplicação (agora o 'artisan' existe)
 COPY . .
 
-# Copiar build do frontend para a pasta public
+# 3. Copiar build do frontend
 COPY --chown=www-data:www-data --from=frontend_builder /app/public ./public
 
-# Permissões para Laravel
+# 4. AGORA sim, gerar o autoloader e rodar os scripts
+# O dump-autoload vai disparar o 'package:discover' automaticamente
+RUN **composer dump-autoload --optimize --no-dev**
+
+# Permissões para Laravel (corrigi o caminho, são 2 diretórios)
 RUN chown -R www-data:www-data storage bootstrap/cache \
-    && chmod -R 775 storage/bootstrap/cache
+    && chmod -R 775 storage bootstrap/cache
 
 EXPOSE 9000
 
