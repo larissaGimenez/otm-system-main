@@ -67,7 +67,7 @@ COPY --chown=www-data:www-data --from=frontend_builder /app/public ./public
 
 # 4. AGORA sim, gerar o autoloader e rodar os scripts
 # O dump-autoload vai disparar o 'package:discover' automaticamente
-RUN **composer dump-autoload --optimize --no-dev**
+RUN composer dump-autoload --optimize --no-dev
 
 # Permissões para Laravel (corrigi o caminho, são 2 diretórios)
 RUN chown -R www-data:www-data storage bootstrap/cache \
