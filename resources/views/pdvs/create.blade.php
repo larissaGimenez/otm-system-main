@@ -1,5 +1,4 @@
 <x-app-layout>
-    {{-- 1. TÍTULO NO HEADER (Padrão do Modelo) --}}
     <x-slot name="header">
         <div class="container-fluid">
             <div class="row align-items-start g-2">
@@ -14,31 +13,24 @@
 
     <x-ui.flash-message />
     
-    {{-- 2. CONTAINER PRINCIPAL --}}
     <div class="container-fluid">
         <div class="bg-white p-4 p-md-5 shadow-sm rounded">
             
-            <form 
-                method="POST" 
-                action="{{ route('pdvs.store') }}" 
-                enctype="multipart/form-data"
-            >
+            <form method="POST" action="{{ route('pdvs.store') }}" enctype="multipart/form-data">
                 @csrf
 
-                {{-- ALERTA DE ERROS --}}
                 @if ($errors->any())
                     <div class="alert alert-danger mb-4">
                         <strong>Opa!</strong> Verifique os campos abaixo.
                     </div>
                 @endif
 
-                {{-- SEÇÃO: DADOS DO PDV --}}
                 <h5 class="mb-4 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">
                     Dados Principais
                 </h5>
 
                 <div class="row mb-3">
-                    <label for="name" class="col-md-2 col-form-label">Código do PDV <span class="text-danger">*</span></label>
+                    <label for="name" class="col-md-2 col-form-label">Nome do PDV <span class="text-danger">*</span></label>
                     <div class="col-md-6">
                         <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
                         @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -46,17 +38,32 @@
                 </div>
 
                 <div class="row mb-3">
-                    <label for="status" class="col-md-2 col-form-label">Status <span class="text-danger">*</span></label>
+                    <label for="pdv_type_id" class="col-md-2 col-form-label">Tipo <span class="text-danger">*</span></label>
                     <div class="col-md-6">
-                        <select class="form-select @error('status') is-invalid @enderror" id="status" name="status" required>
-                            <option value="" disabled selected>Selecione um status...</option>
-                            @foreach ($statuses as $status)
-                                <option value="{{ $status->value }}" {{ old('status') == $status->value ? 'selected' : '' }}>
-                                    {{ $status->getLabel() }}
+                        <select name="pdv_type_id" id="pdv_type_id" class="form-select @error('pdv_type_id') is-invalid @enderror" required>
+                            <option value="" disabled selected>Selecione um tipo...</option>
+                            @foreach($types as $type)
+                                <option value="{{ $type->id }}" {{ old('pdv_type_id') == $type->id ? 'selected' : '' }}>
+                                    {{ $type->name }}
                                 </option>
                             @endforeach
                         </select>
-                        @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        @error('pdv_type_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="pdv_status_id" class="col-md-2 col-form-label">Status <span class="text-danger">*</span></label>
+                    <div class="col-md-6">
+                        <select name="pdv_status_id" id="pdv_status_id" class="form-select @error('pdv_status_id') is-invalid @enderror" required>
+                            <option value="" disabled selected>Selecione um status...</option>
+                            @foreach($statuses as $status)
+                                <option value="{{ $status->id }}" {{ old('pdv_status_id') == $status->id ? 'selected' : '' }}>
+                                    {{ $status->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('pdv_status_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                 </div>
 
@@ -69,7 +76,6 @@
                     </div>
                 </div>
 
-                {{-- SEÇÃO: ENDEREÇO --}}
                 <h5 class="mt-5 mb-4 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">
                     Local de Instalação
                 </h5>
@@ -98,7 +104,6 @@
                     </div>
                 </div>
 
-                {{-- SEÇÃO: MÍDIA --}}
                 <h5 class="mt-5 mb-4 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">
                     Mídia
                 </h5>
@@ -120,7 +125,6 @@
                     </div>
                 </div>
 
-                {{-- BOTÕES DE AÇÃO (Alinhados com o grid) --}}
                 <div class="row mt-5">
                     <div class="col-md-6 offset-md-2">
                         <a href="{{ route('pdvs.index') }}" class="btn btn-outline-secondary me-2">

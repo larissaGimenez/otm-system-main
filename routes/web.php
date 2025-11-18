@@ -25,6 +25,9 @@ use App\Http\Controllers\ConfiguracaoController;
 use App\Http\Controllers\Migration\ClienteMigracaoController;
 use App\Http\Controllers\CondominiumController;
 use App\Http\Controllers\CompanyController;
+use App\Http\Controllers\Settings\PdvSettingsController;
+use App\Http\Controllers\Settings\PdvStatusController;
+use App\Http\Controllers\Settings\PdvTypeController;
 
 Route::middleware('guest')->group(function () {
     Route::get('/', fn () => redirect()->route('login'));
@@ -83,6 +86,12 @@ Route::middleware('auth')->group(function () {
             Route::post('/', [PdvController::class, 'attachEquipment'])->name('attach');
             Route::delete('/{equipment}', [PdvController::class, 'detachEquipment'])->name('detach');
         });
+    });
+
+    Route::prefix('settings/pdv')->name('settings.pdv.')->group(function () {
+        Route::get('/', [PdvSettingsController::class, 'index'])->name('index');
+        Route::resource('statuses', PdvStatusController::class);
+        Route::resource('types', PdvTypeController::class);
     });
 
     Route::prefix('equipamentos')->name('equipments.')->group(function () {

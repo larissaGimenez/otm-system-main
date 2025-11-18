@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pdv;
+use App\Models\PdvStatus;
+use App\Models\PdvType;
 use App\Models\Equipment;
 use App\Models\ExternalId;
-use App\Enums\Pdv\PdvStatus;
-use App\Enums\Pdv\PdvType;
-use App\Enums\Equipment\EquipmentStatus;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -21,10 +20,12 @@ class PdvController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Pdv::query()->with('client');
+        $query = Pdv::query()->with(['client', 'status', 'type']);
 
         if ($request->filled('status')) {
-            $query->where('status', $request->input('status'));
+            $query->whereHas('status', function($q) use ($request) {
+                $q->where('slug', $request->input('status'));
+            });
         }
 
         if ($request->filled('search')) {
@@ -32,40 +33,44 @@ class PdvController extends Controller
 
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'like', $searchTerm)
-                  ->orWhere('type', 'like', $searchTerm)
                   ->orWhere('street', 'like', $searchTerm)
-                  ->orWhereHas('client', function ($q) use ($searchTerm) {
-                      $q->where('name', 'like', $searchTerm);
-                  });
+                  ->orWhereHas('type', fn($q) => $q->where('name', 'like', $searchTerm))
+                  ->orWhereHas('status', fn($q) => $q->where('name', 'like', $searchTerm))
+                  ->orWhereHas('client', fn($q) => $q->where('name', 'like', $searchTerm));
             });
         }
 
         $pdvs = $query->latest()->paginate(10)->withQueryString();
+        
+        // CORREÇÃO: Busca todos os status para as abas da index
+        $allStatuses = PdvStatus::all();
 
-        return view('pdvs.index', compact('pdvs'));
+        return view('pdvs.index', compact('pdvs', 'allStatuses'));
     }
 
     public function create(): View
     {
+        // CORREÇÃO: Busca do banco para preencher os selects
         return view('pdvs.create', [
-            'statuses' => PdvStatus::cases(),
-            'types'    => PdvType::cases(),
+            'statuses' => PdvStatus::all(),
+            'types'    => PdvType::all(),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
         $validatedData = $request->validate([
-            'name'        => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')],
-            'description' => ['nullable', 'string'],
-            'type'        => ['nullable', Rule::in(array_column(PdvType::cases(), 'value'))],
-            'street'      => ['nullable', 'string', 'max:255'],
-            'number'      => ['nullable', 'string', 'max:50'],
-            'complement'  => ['nullable', 'string', 'max:255'],
-            'photos'      => ['nullable', 'array'],
-            'photos.*'    => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-            'videos'      => ['nullable', 'array'],
-            'videos.*'    => ['mimetypes:video/mp4,video/avi,video/mpeg', 'max:20480'],
+            'name'          => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')],
+            'description'   => ['nullable', 'string'],
+            'pdv_type_id'   => ['required', 'exists:pdv_types,id'],
+            'pdv_status_id' => ['required', 'exists:pdv_statuses,id'],
+            'street'        => ['nullable', 'string', 'max:255'],
+            'number'        => ['nullable', 'string', 'max:50'],
+            'complement'    => ['nullable', 'string', 'max:255'],
+            'photos'        => ['nullable', 'array'],
+            'photos.*'      => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'videos'        => ['nullable', 'array'],
+            'videos.*'      => ['mimetypes:video/mp4,video/avi,video/mpeg', 'max:20480'],
         ]);
 
         try {
@@ -94,19 +99,16 @@ class PdvController extends Controller
                 ->with('success', 'Ponto de Venda cadastrado com sucesso.');
         } catch (\Throwable $e) {
             Log::error('Falha ao criar PDV: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            $errorMessage = app()->environment('local')
-                ? 'Erro: ' . $e->getMessage()
-                : 'Ocorreu um erro ao cadastrar o Ponto de Venda. Tente novamente.';
-
+            
             return back()
-                ->with('error', $errorMessage)
+                ->with('error', 'Ocorreu um erro ao cadastrar. ' . $e->getMessage())
                 ->withInput();
         }
     }
 
     public function show(Pdv $pdv)
     {
-        $pdv->load(['equipments']);
+        $pdv->load(['equipments', 'status', 'type', 'client']);
 
         $externalIdRecords = ExternalId::forItem($pdv->id)->latest()->get();
         $availableEquipments = Equipment::whereDoesntHave('pdvs')->get();
@@ -120,26 +122,28 @@ class PdvController extends Controller
 
     public function edit(Pdv $pdv): View
     {
+        // CORREÇÃO: Busca do banco para preencher os selects
         return view('pdvs.edit', [
             'pdv'      => $pdv,
-            'statuses' => PdvStatus::cases(),
-            'types'    => PdvType::cases(),
+            'statuses' => PdvStatus::all(),
+            'types'    => PdvType::all(),
         ]);
     }
 
     public function update(Request $request, Pdv $pdv): RedirectResponse
     {
         $validatedData = $request->validate([
-            'name'        => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')->ignore($pdv->id)],
-            'description' => ['nullable', 'string'],
-            'type'        => ['nullable', Rule::in(array_column(PdvType::cases(), 'value'))],
-            'street'      => ['nullable', 'string', 'max:255'],
-            'number'      => ['nullable', 'string', 'max:50'],
-            'complement'  => ['nullable', 'string', 'max:255'],
-            'photos'      => ['nullable', 'array'],
-            'photos.*'    => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-            'videos'      => ['nullable', 'array'],
-            'videos.*'    => ['mimetypes:video/mp4,video/avi,video/mpeg', 'max:20480'],
+            'name'          => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')->ignore($pdv->id)],
+            'description'   => ['nullable', 'string'],
+            'pdv_type_id'   => ['required', 'exists:pdv_types,id'],
+            'pdv_status_id' => ['required', 'exists:pdv_statuses,id'],
+            'street'        => ['nullable', 'string', 'max:255'],
+            'number'        => ['nullable', 'string', 'max:50'],
+            'complement'    => ['nullable', 'string', 'max:255'],
+            'photos'        => ['nullable', 'array'],
+            'photos.*'      => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'videos'        => ['nullable', 'array'],
+            'videos.*'      => ['mimetypes:video/mp4,video/avi,video/mpeg', 'max:20480'],
         ]);
 
         try {
@@ -167,7 +171,7 @@ class PdvController extends Controller
         } catch (\Throwable $e) {
             Log::error('Falha ao atualizar PDV: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return back()
-                ->with('error', 'Ocorreu um erro ao atualizar o Ponto de Venda. Tente novamente.')
+                ->with('error', 'Ocorreu um erro ao atualizar o Ponto de Venda.')
                 ->withInput();
         }
     }
@@ -176,7 +180,8 @@ class PdvController extends Controller
     {
         try {
             $pdv->update([
-                'status' => PdvStatus::CLOSED
+                'pdv_status_id' => null,
+                'pdv_type_id'   => null,
             ]);
 
             $pdv->delete();
@@ -187,7 +192,7 @@ class PdvController extends Controller
         } catch (\Throwable $e) {
             Log::error('Falha ao excluir PDV: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return back()
-                ->with('error', 'Ocorreu um erro ao excluir o Ponto de Venda. Tente novamente.');
+                ->with('error', 'Ocorreu um erro ao excluir o Ponto de Venda.');
         }
     }
 
@@ -210,8 +215,11 @@ class PdvController extends Controller
 
             $pdv->equipments()->syncWithoutDetaching($toAttach);
 
+            // Nota: Se você também converteu EquipmentStatus para tabela, 
+            // aqui precisará buscar o ID pelo slug, igual fizemos no destroy acima.
+            // Se EquipmentStatus ainda é Enum, mantenha como está.
             Equipment::whereIn('id', $toAttach)->update([
-                'status' => EquipmentStatus::IN_USE
+                'status' => EquipmentStatus::IN_USE 
             ]);
 
             $ignored = array_diff($data['equipments'], $toAttach);

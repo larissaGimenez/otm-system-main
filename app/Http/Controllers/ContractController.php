@@ -26,8 +26,7 @@ class ContractController extends Controller
             'monthly_fee_due_day' => ['nullable', 'required_if:has_monthly_fee,true', 'integer', 'min:1', 'max:31'],
             'has_commission'      => ['nullable', 'boolean'],
             'commission_percentage' => ['nullable', 'required_if:has_commission,true', 'numeric', 'min:0', 'max:100'],
-            // Mantenha suas outras validações (bank, pix, etc.)
-            'pdf_file'            => ['nullable', 'file', 'mimes:pdf', 'max:5120'], // 5MB Max PDF
+            'pdf_file'            => ['nullable', 'file', 'mimes:pdf', 'max:5120'], 
         ]);
 
         try {

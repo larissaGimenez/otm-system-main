@@ -61,22 +61,6 @@
         <x-pdvs.modals.edit-external-id :ext="$ext" :pdv="$pdv" />
     @endforeach
 
-    
-    {{-- =============================================== --}}
-    {{-- VVV TODOS OS MODAIS ABAIXO FORAM REMOVIDOS VVV --}}
-    {{-- =============================================== --}}
-    
-    {{-- <x-pdvs.modals.create-contract :pdv="$pdv" /> --}}
-    {{-- @foreach ($pdv->contracts as $contract) ... @endforeach --}}
-
-    {{-- <x-pdvs.modals.create-activation-fee :pdv="$pdv" /> --}}
-    {{-- @if ($pdv->activationFee) ... @endif --}}
-
-    {{-- =============================================== --}}
-    {{-- ^^^ TODOS OS MODAIS ACIMA FORAM REMOVIDOS ^^^ --}}
-    {{-- =============================================== --}}
-
-
     <x-slot name="scripts">
     <script>
         document.addEventListener('DOMContentLoaded', function () {

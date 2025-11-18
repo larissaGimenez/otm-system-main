@@ -23,7 +23,7 @@ class MonthlySaleController extends Controller
                 'integer', 
                 'min:1', 
                 'max:12',
-                // CORREÇÃO: A regra unique agora usa 'contract_id'
+
                 Rule::unique('monthly_sales')->where(function ($query) use ($contract) {
                     return $query->where('contract_id', $contract->id)
                                  ->where('year', request('year'));
@@ -35,7 +35,6 @@ class MonthlySaleController extends Controller
 
         try {
             $validatedData['contract_id'] = $contract->id;
-            // $validatedData['pdv_id'] = $contract->pdv_id; // <-- REMOVIDO (não existe mais)
 
             MonthlySale::create($validatedData);
 
@@ -58,12 +57,12 @@ class MonthlySaleController extends Controller
                 'required', 
                 'integer', 
                 'min:1', 
-                'max:12',
-                // CORREÇÃO: A regra unique agora usa 'contract_id'
+                'max:12', 
+
                 Rule::unique('monthly_sales')->where(function ($query) use ($monthlySale) {
                     return $query->where('contract_id', $monthlySale->contract_id)
                                  ->where('year', request('year'));
-                })->ignore($monthlySale->id) // Ignora o próprio registro
+                })->ignore($monthlySale->id) 
             ],
             'gross_sales_value' => ['required', 'numeric', 'min:0'],
             'net_sales_value'   => ['nullable', 'numeric', 'min:0'],

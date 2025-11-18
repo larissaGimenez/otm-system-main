@@ -1,5 +1,4 @@
 <x-app-layout>
-    {{-- Cabeçalho da Página --}}
     <x-slot name="header">
         <h2 class="h4 font-weight-bold">
             Editar Ponto de Venda
@@ -8,12 +7,10 @@
 
     <x-ui.flash-message />
 
-    {{-- O 'enctype' é essencial para o upload de arquivos --}}
     <form method="POST" action="{{ route('pdvs.update', $pdv) }}" enctype="multipart/form-data" class="bg-white p-4 rounded shadow-sm">
         @csrf
         @method('PUT')
 
-        {{-- Exibe os erros de validação no topo do formulário --}}
         @if ($errors->any())
             <div class="alert alert-danger mb-4">
                 <strong>Opa!</strong> Algo deu errado. Por favor, verifique os campos abaixo.
@@ -22,7 +19,6 @@
 
         <h5 class="mb-3 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">Dados do PDV</h5>
         <div class="row">
-            {{-- CAMPO NOME --}}
             <div class="col-md-7 mb-3">
                 <div class="form-floating">
                     <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $pdv->name) }}" placeholder="Nome do PDV" required>
@@ -33,34 +29,32 @@
         </div>
 
         <div class="row">
-            {{-- CAMPO TIPO (CORRIGIDO PARA SELECT) --}}
             <div class="col-md-6 mb-3">
                 <div class="form-floating">
-                    <select class="form-select @error('type') is-invalid @enderror" id="type" name="type" required>
+                    <select class="form-select @error('pdv_type_id') is-invalid @enderror" id="pdv_type_id" name="pdv_type_id" required>
                         <option value="" disabled>Selecione um tipo...</option>
                         @foreach ($types as $type)
-                            <option value="{{ $type->value }}" {{ old('type', $pdv->type->value) == $type->value ? 'selected' : '' }}>
-                                {{ $type->getLabel() }}
+                            <option value="{{ $type->id }}" {{ old('pdv_type_id', $pdv->pdv_type_id) == $type->id ? 'selected' : '' }}>
+                                {{ $type->name }}
                             </option>
                         @endforeach
                     </select>
-                    <label for="type">Tipo</label>
-                    @error('type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <label for="pdv_type_id">Tipo</label>
+                    @error('pdv_type_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
-            {{-- CAMPO STATUS (CORRIGIDO PARA SELECT) --}}
             <div class="col-md-6 mb-3">
                 <div class="form-floating">
-                    <select class="form-select @error('status') is-invalid @enderror" id="status" name="status" required>
+                    <select class="form-select @error('pdv_status_id') is-invalid @enderror" id="pdv_status_id" name="pdv_status_id" required>
                         <option value="" disabled>Selecione um status...</option>
                         @foreach ($statuses as $status)
-                            <option value="{{ $status->value }}" {{ old('status', $pdv->status->value) == $status->value ? 'selected' : '' }}>
-                                {{ $status->getLabel() }}
+                            <option value="{{ $status->id }}" {{ old('pdv_status_id', $pdv->pdv_status_id) == $status->id ? 'selected' : '' }}>
+                                {{ $status->name }}
                             </option>
                         @endforeach
                     </select>
-                    <label for="status">Status</label>
-                    @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <label for="pdv_status_id">Status</label>
+                    @error('pdv_status_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
         </div>
@@ -77,7 +71,6 @@
             </div>
         </div>
 
-        {{-- ENDEREÇO --}}
         <h5 class="mt-4 mb-3 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">Endereço de Alocação</h5>
         <div class="row">
             <div class="col-md-8 mb-3">
@@ -106,7 +99,6 @@
             </div>
         </div>
 
-        {{-- MÍDIA --}}
         @php
             $photoCount = is_array($pdv->photos) ? count($pdv->photos) : 0;
             $videoCount = is_array($pdv->videos) ? count($pdv->videos) : 0;
@@ -136,7 +128,6 @@
             </div>
         </div>
 
-        {{-- AÇÕES --}}
         <div class="mt-4 pt-3 border-top d-flex justify-content-end align-items-center">
             <a href="{{ route('pdvs.index') }}" class="btn btn-outline-secondary me-2">
                 Cancelar
