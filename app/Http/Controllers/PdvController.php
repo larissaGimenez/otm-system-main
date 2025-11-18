@@ -5,11 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Pdv;
 use App\Models\Equipment;
 use App\Models\ExternalId;
-
 use App\Enums\Pdv\PdvStatus;
 use App\Enums\Pdv\PdvType;
 use App\Enums\Equipment\EquipmentStatus;
-
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -23,7 +21,11 @@ class PdvController extends Controller
 {
     public function index(Request $request): View
     {
-        $query = Pdv::query();
+        $query = Pdv::query()->with('client');
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
 
         if ($request->filled('search')) {
             $searchTerm = '%' . $request->input('search') . '%';
@@ -31,12 +33,14 @@ class PdvController extends Controller
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'like', $searchTerm)
                   ->orWhere('type', 'like', $searchTerm)
-                  ->orWhere('status', 'like', $searchTerm)
-                  ->orWhere('street', 'like', $searchTerm);
+                  ->orWhere('street', 'like', $searchTerm)
+                  ->orWhereHas('client', function ($q) use ($searchTerm) {
+                      $q->where('name', 'like', $searchTerm);
+                  });
             });
         }
 
-        $pdvs = $query->withTrashed()->latest()->paginate(10);
+        $pdvs = $query->latest()->paginate(10)->withQueryString();
 
         return view('pdvs.index', compact('pdvs'));
     }
@@ -54,15 +58,12 @@ class PdvController extends Controller
         $validatedData = $request->validate([
             'name'        => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')],
             'description' => ['nullable', 'string'],
-            'type'        => ['required', Rule::in(array_column(PdvType::cases(), 'value'))],
-            'status'      => ['required', Rule::in(array_column(PdvStatus::cases(), 'value'))],
+            'type'        => ['nullable', Rule::in(array_column(PdvType::cases(), 'value'))],
             'street'      => ['nullable', 'string', 'max:255'],
             'number'      => ['nullable', 'string', 'max:50'],
             'complement'  => ['nullable', 'string', 'max:255'],
-
             'photos'      => ['nullable', 'array'],
             'photos.*'    => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-
             'videos'      => ['nullable', 'array'],
             'videos.*'    => ['mimetypes:video/mp4,video/avi,video/mpeg', 'max:20480'],
         ]);
@@ -85,6 +86,7 @@ class PdvController extends Controller
             }
 
             $validatedData['slug'] = Str::slug($validatedData['name']);
+            
             Pdv::create($validatedData);
 
             return redirect()
@@ -104,23 +106,15 @@ class PdvController extends Controller
 
     public function show(Pdv $pdv)
     {
-        // 1. Carrega APENAS os relacionamentos que o PDV realmente tem
-        $pdv->load(['equipments']); // <-- CORRIGIDO
+        $pdv->load(['equipments']);
 
-        // 2. Busca os IDs Externos
         $externalIdRecords = ExternalId::forItem($pdv->id)->latest()->get();
-
-        // 3. Busca equipamentos disponíveis
         $availableEquipments = Equipment::whereDoesntHave('pdvs')->get();
 
-        // (Contagem de contrato foi removida)
-
-        // 4. Envia os dados para a view
         return view('pdvs.show', [
             'pdv'                 => $pdv,
             'availableEquipments' => $availableEquipments,
             'externalIdRecords'   => $externalIdRecords,
-            // 'contractCount'    => REMOVIDO
         ]);
     }
 
@@ -138,15 +132,12 @@ class PdvController extends Controller
         $validatedData = $request->validate([
             'name'        => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')->ignore($pdv->id)],
             'description' => ['nullable', 'string'],
-            'type'        => ['required', Rule::in(array_column(PdvType::cases(), 'value'))], 
-            'status'      => ['required', Rule::in(array_column(PdvStatus::cases(), 'value'))],
+            'type'        => ['nullable', Rule::in(array_column(PdvType::cases(), 'value'))],
             'street'      => ['nullable', 'string', 'max:255'],
             'number'      => ['nullable', 'string', 'max:50'],
             'complement'  => ['nullable', 'string', 'max:255'],
-
             'photos'      => ['nullable', 'array'],
             'photos.*'    => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-
             'videos'      => ['nullable', 'array'],
             'videos.*'    => ['mimetypes:video/mp4,video/avi,video/mpeg', 'max:20480'],
         ]);
@@ -184,6 +175,10 @@ class PdvController extends Controller
     public function destroy(Pdv $pdv): RedirectResponse
     {
         try {
+            $pdv->update([
+                'status' => PdvStatus::CLOSED
+            ]);
+
             $pdv->delete();
 
             return redirect()
@@ -204,8 +199,7 @@ class PdvController extends Controller
         ]);
 
         return DB::transaction(function () use ($pdv, $data) {
-            // Garante que só iremos anexar os que ainda estão "Disponível"
-            $toAttach = Equipment::available() // Isso já usa o Enum (scope)
+            $toAttach = Equipment::available()
                 ->whereIn('id', $data['equipments'])
                 ->pluck('id')
                 ->all();
@@ -216,12 +210,9 @@ class PdvController extends Controller
 
             $pdv->equipments()->syncWithoutDetaching($toAttach);
 
-            // --- CORREÇÃO AQUI ---
-            // Atualiza o status para "Em uso" usando o Enum
             Equipment::whereIn('id', $toAttach)->update([
-                'status' => EquipmentStatus::IN_USE // <-- ANTES: 'Em uso'
+                'status' => EquipmentStatus::IN_USE
             ]);
-            // --- FIM DA CORREÇÃO ---
 
             $ignored = array_diff($data['equipments'], $toAttach);
 
@@ -238,15 +229,10 @@ class PdvController extends Controller
         return DB::transaction(function () use ($pdv, $equipment) {
             $pdv->equipments()->detach($equipment->id);
 
-            // Se não estiver mais associado a NENHUM PDV, volta para "Disponível"
             if (!$equipment->pdvs()->exists()) {
-                
-                // --- CORREÇÃO AQUI ---
-                // Atualiza o status para "Disponível" usando o Enum
                 $equipment->update([
-                    'status' => EquipmentStatus::AVAILABLE // <-- ANTES: 'Disponível'
+                    'status' => EquipmentStatus::AVAILABLE
                 ]);
-                // --- FIM DA CORREÇÃO ---
             }
 
             return back()->with('success', 'Equipamento desassociado com sucesso.');
@@ -263,7 +249,6 @@ class PdvController extends Controller
         ]);
 
         try {
-            // Pega os caminhos das fotos existentes ou um array vazio
             $photoPaths = $pdv->photos ?? [];
             if ($request->hasFile('photos')) {
                 foreach ($request->file('photos') as $photo) {
@@ -271,7 +256,6 @@ class PdvController extends Controller
                 }
             }
 
-            // Pega os caminhos dos vídeos existentes ou um array vazio
             $videoPaths = $pdv->videos ?? [];
             if ($request->hasFile('videos')) {
                 foreach ($request->file('videos') as $video) {
@@ -279,7 +263,6 @@ class PdvController extends Controller
                 }
             }
 
-            // Atualiza o PDV com os arrays de mídia combinados
             $pdv->update([
                 'photos' => $photoPaths,
                 'videos' => $videoPaths,
@@ -293,25 +276,18 @@ class PdvController extends Controller
         }
     }
 
-    /**
-     * Remove uma mídia específica (foto ou vídeo) de um PDV.
-     */
     public function destroyMedia(Pdv $pdv, string $type, int $index): RedirectResponse
     {
         try {
             $mediaArray = $pdv->$type ?? [];
 
             if (isset($mediaArray[$index])) {
-                // 1. Pega o caminho do arquivo para deletar do disco
                 $filePathToDelete = $mediaArray[$index];
 
-                // 2. Remove o item do array
                 unset($mediaArray[$index]);
 
-                // 3. Deleta o arquivo do armazenamento (storage/app/public/...)
                 Storage::disk('public')->delete($filePathToDelete);
 
-                // 4. Atualiza o PDV com o novo array (com índices reorganizados)
                 $pdv->update([$type => array_values($mediaArray)]);
 
                 return back()->with('success', 'Mídia removida com sucesso.');

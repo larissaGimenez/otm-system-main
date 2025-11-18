@@ -20,7 +20,6 @@ class Pdv extends Model
         'name',
         'slug',
         'description',
-        'type',
         'status',
         'street',
         'number',
@@ -34,7 +33,6 @@ class Pdv extends Model
         'photos' => 'array',
         'videos' => 'array',
         'status' => PdvStatus::class,
-        'type'   => PdvType::class,
     ];
 
     public function equipments(): BelongsToMany

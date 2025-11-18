@@ -84,6 +84,10 @@ body {
     font-weight: 700;
 }
 
+.btn-primary {
+   --bs-btn-color: #ffffff;
+}
+
 // Classe para títulos de seção dentro de uma página
 .title-section {
     font-size: 1.25rem;
