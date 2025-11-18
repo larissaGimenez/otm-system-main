@@ -38,7 +38,7 @@
                 </h5>
 
                 <div class="row mb-3">
-                    <label for="name" class="col-md-2 col-form-label">Nome do PDV <span class="text-danger">*</span></label>
+                    <label for="name" class="col-md-2 col-form-label">Código do PDV <span class="text-danger">*</span></label>
                     <div class="col-md-6">
                         <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
                         @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -61,7 +61,7 @@
                 </div>
 
                 <div class="row mb-3">
-                    <label for="description" class="col-md-2 col-form-label">Descrição</label>
+                    <label for="description" class="col-md-2 col-form-label">Observações</label>
                     <div class="col-md-6">
                         <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="5">{{ old('description') }}</textarea>
                         @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -71,7 +71,7 @@
 
                 {{-- SEÇÃO: ENDEREÇO --}}
                 <h5 class="mt-5 mb-4 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">
-                    Endereço de Alocação
+                    Local de Instalação
                 </h5>
 
                 <div class="row mb-3">

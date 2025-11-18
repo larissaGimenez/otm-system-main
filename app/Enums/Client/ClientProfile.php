@@ -8,12 +8,12 @@ enum ClientProfile: string
     case B = 'B';
     case C  = 'C';   
 
-    public static function labels(): array
+    public function getLabel(): string
     {
-        return [
-            self::A->value  => 'A',
-            self::B->value => 'B',
-            self::C->value   => 'C',
-        ];
+        return match ($this) {
+            self::A => 'A',
+            self::B => 'B',
+            self::C => 'C',
+        };
     }
 }

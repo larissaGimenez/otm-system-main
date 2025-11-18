@@ -31,7 +31,6 @@
                     <thead class="text-muted small">
                         <tr>
                             <th scope="col">Nome do PDV</th>
-                            <th scope="col">Tipo</th>
                             <th scope="col">Endereço</th>
                             <th scope="col">Status</th>
                             <th scope="col" class="text-end">Ações</th>
@@ -41,7 +40,6 @@
                         @foreach ($pdvs as $pdv)
                             <tr>
                                 <td class="fw-bold">{{ $pdv->name }}</td>
-                                <td>{{ $pdv->type->getLabel() }}</td>
                                 <td class="small">
                                     {{ $pdv->street ?? 'N/A' }},
                                     {{ $pdv->number ?? 'S/N' }}
