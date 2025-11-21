@@ -2,19 +2,20 @@
 
 @php
     $client->loadMissing(['contracts.monthlySales']);
-
     $contracts = $client->contracts ?? collect();
 @endphp
 
 <div>
-    <div class="d-flex justify-content-end mb-3">
-        <button type="button"
-                class="btn btn-primary btn-sm"
-                data-bs-toggle="modal"
-                data-bs-target="#createContractModal_{{ $client->id }}">
-            <i class="bi bi-plus-circle me-1"></i> Adicionar Novo Contrato
-        </button>
-    </div>
+    @if($contracts->isEmpty())
+        <div class="d-flex justify-content-end mb-3">
+            <button type="button"
+                    class="btn btn-primary btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#createContractModal_{{ $client->id }}">
+                <i class="bi bi-plus-circle me-1"></i> Adicionar Novo Contrato
+            </button>
+        </div>
+    @endif
 
     @forelse ($contracts as $contract)
         @php

@@ -29,28 +29,17 @@
                     Dados Principais
                 </h5>
 
+                {{-- Rótulo alterado para Código do PDV --}}
                 <div class="row mb-3">
-                    <label for="name" class="col-md-2 col-form-label">Nome do PDV <span class="text-danger">*</span></label>
+                    <label for="name" class="col-md-2 col-form-label">Código do PDV <span class="text-danger">*</span></label>
                     <div class="col-md-6">
+                        {{-- Mantive name="name" para não quebrar o Controller, já que o banco usa a coluna 'name' --}}
                         <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
                         @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
                     </div>
                 </div>
 
-                <div class="row mb-3">
-                    <label for="pdv_type_id" class="col-md-2 col-form-label">Tipo <span class="text-danger">*</span></label>
-                    <div class="col-md-6">
-                        <select name="pdv_type_id" id="pdv_type_id" class="form-select @error('pdv_type_id') is-invalid @enderror" required>
-                            <option value="" disabled selected>Selecione um tipo...</option>
-                            @foreach($types as $type)
-                                <option value="{{ $type->id }}" {{ old('pdv_type_id') == $type->id ? 'selected' : '' }}>
-                                    {{ $type->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('pdv_type_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                    </div>
-                </div>
+                {{-- Campo TIPO removido daqui --}}
 
                 <div class="row mb-3">
                     <label for="pdv_status_id" class="col-md-2 col-form-label">Status <span class="text-danger">*</span></label>
@@ -70,37 +59,9 @@
                 <div class="row mb-3">
                     <label for="description" class="col-md-2 col-form-label">Observações</label>
                     <div class="col-md-6">
-                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="5">{{ old('description') }}</textarea>
+                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="5" placeholder="Insira o endereço e outras informações relevantes...">{{ old('description') }}</textarea>
                         @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        <div class="form-text">Informações adicionais sobre este ponto de venda.</div>
-                    </div>
-                </div>
-
-                <h5 class="mt-5 mb-4 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">
-                    Local de Instalação
-                </h5>
-
-                <div class="row mb-3">
-                    <label for="street" class="col-md-2 col-form-label">Rua / Avenida</label>
-                    <div class="col-md-6">
-                        <input type="text" class="form-control @error('street') is-invalid @enderror" id="street" name="street" value="{{ old('street') }}">
-                        @error('street') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <label for="number" class="col-md-2 col-form-label">Número</label>
-                    <div class="col-md-6">
-                        <input type="text" class="form-control @error('number') is-invalid @enderror" id="number" name="number" value="{{ old('number') }}">
-                        @error('number') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <label for="complement" class="col-md-2 col-form-label">Complemento</label>
-                    <div class="col-md-6">
-                        <input type="text" class="form-control @error('complement') is-invalid @enderror" id="complement" name="complement" value="{{ old('complement') }}">
-                        @error('complement') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <div class="form-text">Informações adicionais e localização.</div>
                     </div>
                 </div>
 
