@@ -14,21 +14,6 @@
 
         @if (Auth::user()->hasAnyRole(['admin', 'manager', 'staff']))
             <div class="px-2 mb-2 small text-uppercase fw-bold text-muted">Operacional</div>
-            
-            <li class="nav-item mb-1">
-                <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('pdvs.*') ? '' : 'collapsed' }} {{ request()->routeIs('pdvs.*') ? 'active text-white' : '' }}"
-                   style="{{ request()->routeIs('pdvs.*') ? 'background-color: var(--bs-primary);' : '' }}"
-                   href="#pdvSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('pdvs.*') ? 'true' : 'false' }}">
-                    <i class="bi bi-shop me-2"></i> Pontos de Venda
-                </a>
-                <div class="collapse {{ request()->routeIs('pdvs.*') ? 'show' : '' }}" id="pdvSubmenu">
-                    <ul class="nav flex-column ps-4 pt-1">
-                        <li class="nav-item"><a href="{{ route('pdvs.index') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('pdvs.index') ? 'fw-bold' : '' }}">Listar</a></li>
-                        <li class="nav-item"><a href="{{ route('pdvs.create') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('pdvs.create') ? 'fw-bold' : '' }}">Criar um novo</a></li>
-                        <li class="nav-item"><a href="{{ route('settings.pdv.index') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('settings.pdv.*') ? 'fw-bold' : '' }}">Configurações</a></li>
-                    </ul>
-                </div>
-            </li>
 
             <li class="nav-item mb-1">
                 <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('clients.*') ? '' : 'collapsed' }} {{ request()->routeIs('clients.*') ? 'active text-white' : '' }}"
@@ -51,6 +36,23 @@
                     </ul>
                 </div>
             </li>
+            
+            <li class="nav-item mb-1">
+                <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('pdvs.*') ? '' : 'collapsed' }} {{ request()->routeIs('pdvs.*') ? 'active text-white' : '' }}"
+                   style="{{ request()->routeIs('pdvs.*') ? 'background-color: var(--bs-primary);' : '' }}"
+                   href="#pdvSubmenu" data-bs-toggle="collapse" role="button" aria-expanded="{{ request()->routeIs('pdvs.*') ? 'true' : 'false' }}">
+                    <i class="bi bi-shop me-2"></i> Pontos de Venda
+                </a>
+                <div class="collapse {{ request()->routeIs('pdvs.*') ? 'show' : '' }}" id="pdvSubmenu">
+                    <ul class="nav flex-column ps-4 pt-1">
+                        <li class="nav-item"><a href="{{ route('pdvs.index') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('pdvs.index') ? 'fw-bold' : '' }}">Listar</a></li>
+                        <li class="nav-item"><a href="{{ route('pdvs.create') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('pdvs.create') ? 'fw-bold' : '' }}">Criar um novo</a></li>
+                        <li class="nav-item"><a href="{{ route('settings.pdv.index') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('settings.pdv.*') ? 'fw-bold' : '' }}">Configurações</a></li>
+                    </ul>
+                </div>
+            </li>
+
+            
 
             <li class="nav-item mb-1">
                 <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('requests.*') ? '' : 'collapsed' }} {{ request()->routeIs('requests.*') ? 'active text-white' : '' }}"

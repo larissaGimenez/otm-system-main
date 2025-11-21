@@ -2,17 +2,17 @@
 
 @php
     $fee = $client->activationFee;
-    $netBalance = 0.0;
+    $paidValue = 0.0;
+    $installmentsCount = 0;
+    $isPaid = false;
 
     if ($fee) {
         $installments = $fee->installments ?? collect();
-        $paidValue = $installments->sum('paid_value'); // Soma o que foi pago
+        $paidValue = $installments->sum('paid_value');
         $installmentsCount = $installments->count();
+        
+        // Verifica se todas estão pagas
         $isPaid = ($installmentsCount > 0 && $installments->every(fn($i) => $i->is_paid));
-
-        if (!$isPaid) {
-            $netBalance = round((float)$fee->total_value - $paidValue, 2);
-        }
 
         $nextDue = $installments
             ->filter(fn($i) => !$i->is_paid && $i->due_date->isFuture())
@@ -45,22 +45,7 @@
 
     <x-ui.details-panel :sections="$detailsSections">
         <div class="d-flex justify-content-end gap-2 mt-3 border-top pt-3">
-            <button type="button"
-                    class="btn btn-outline-secondary btn-sm"
-                    data-bs-toggle="modal"
-                    data-bs-target="#editActivationFeeModal_{{ $client->id }}">
-                <i class="bi bi-pencil me-1"></i> Editar Custo
-            </button>
-
-            @if ($netBalance > 0)
-                <button type="button"
-                        class="btn btn-info btn-sm"
-                        data-bs-toggle="modal"
-                        data-bs-target="#renegotiateFeeModal_{{ $fee->id }}">
-                    <i class="bi bi-arrow-repeat me-1"></i> 
-                    Renegociar Saldo (R$ {{ number_format($netBalance, 2, ',', '.') }})
-                </button>
-            @endif
+            {{-- Botão de Editar Custo REMOVIDO aqui --}}
 
             <form action="{{ route('clients.activation-fee.destroy', $client) }}"
                   method="POST"
@@ -80,12 +65,12 @@
                 ['label' => 'Nº'],
                 ['label' => 'Vencimento'],
                 ['label' => 'Valor (R$)'],
-                ['label' => 'Valor Pago (R$)'],
-                ['label' => 'Saldo (R$)'], // <-- Título da coluna
+                ['label' => 'Pago em'], // Nome da coluna alterado
                 ['label' => 'Status'],
             ];
         @endphp
 
+        {{-- buttonText="" garante que não apareça botão de criar parcela --}}
         <x-ui.crud-panel
             title="Parcelas"
             buttonText="" 
@@ -96,9 +81,8 @@
         >
             @foreach ($fee->installments as $installment)
                 @php
-                    $isPaid = $installment->is_paid;
+                    $isPaid = $installment->is_paid; 
                     $isOverdue = $installment->is_overdue;
-                    $isPartial = $installment->paid_at !== null && !$isPaid;
                 @endphp
 
                 <tr class="{{ $isOverdue ? 'table-danger' : '' }}">
@@ -107,33 +91,14 @@
                     
                     <td>{{ number_format((float)($installment->value ?? 0), 2, ',', '.') }}</td>
                     
-                    <td>{{ $installment->paid_value ? 'R$ ' . number_format((float)$installment->paid_value, 2, ',', '.') : '—' }}</td>
-
-                    {{-- CORREÇÃO: Lógica do Saldo (+/-) --}}
+                    {{-- Coluna Pago em (Apenas a data) --}}
                     <td>
-                        @php $balance = (float)$installment->balance_value; @endphp
-                        
-                        @if ($balance > 0)
-                            {{-- Pago a mais --}}
-                            <span class="text-success fw-bold" title="Pago a mais">
-                                + R$ {{ number_format($balance, 2, ',', '.') }}
-                            </span>
-                        @elseif ($balance < 0)
-                            {{-- Devedor --}}
-                            <span class="text-danger" title="Saldo devedor">
-                                R$ {{ number_format($balance, 2, ',', '.') }}
-                            </span>
-                        @else
-                            {{-- Quitado --}}
-                            R$ 0,00
-                        @endif
+                        {{ $installment->paid_at ? $installment->paid_at->format('d/m/Y') : '—' }}
                     </td>
                     
                     <td>
                         @if ($isPaid)
                             <span class="badge bg-success">Pago</span>
-                        @elseif ($isPartial)
-                            <span class="badge bg-info">Pago Parcial</span>
                         @elseif($isOverdue)
                             <span class="badge bg-danger">Vencido</span>
                         @else
@@ -142,21 +107,21 @@
                     </td>
 
                     <td class="text-end">
-                        @if ($installment->paid_at !== null)
-                            <form action="{{ route('fee-installments.unpay', $installment) }}" method="POST" class="d-inline" onsubmit="return confirm('Tem certeza que deseja estornar este pagamento? Isso irá zerar o valor pago.');">
-                                @csrf
-                                @method('PATCH')
-                                <button type="submit" class="btn btn-warning btn-sm" title="Estornar Pagamento">
-                                    Estornar
-                                </button>
-                            </form>
-                        @endif
-
                         @if (!$isPaid)
+                            {{-- Botão Editar Vencimento (Só aparece se NÃO estiver pago) --}}
+                            <button type="button" 
+                                    class="btn btn-outline-primary btn-sm me-1"
+                                    title="Alterar Vencimento"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editDueDateModal_{{ $installment->id }}">
+                                <i class="bi bi-calendar-date"></i>
+                            </button>
+
+                            {{-- Botão Pagar --}}
                             <button type="button" class="btn btn-success btn-sm" 
                                     data-bs-toggle="modal" 
                                     data-bs-target="#payInstallmentModal_{{ $installment->id }}">
-                                {{ $isPartial ? 'Ajustar Pag.' : 'Registrar Pag.' }}
+                                <i class="bi bi-check-lg me-1"></i> Pagar
                             </button>
                         @endif
                     </td>
@@ -166,7 +131,6 @@
     </div>
 
 @else
-    
     <div class="text-center text-muted py-5">
         <i class="bi bi-cash-coin fs-2 d-block mb-3"></i>
         <h5 class="mb-3">Custo de Implantação</h5>
@@ -182,112 +146,68 @@
 @endif
 
 {{-- ======================================================= --}}
-{{-- MODAIS DE PAGAMENTO (Renderizados no final da página)   --}}
+{{-- MODAIS (Renderizados no final da página)                --}}
 {{-- ======================================================= --}}
 @if ($fee)
     @foreach($fee->installments as $installment)
         
+        {{-- MODAL 1: Editar Data de Vencimento --}}
         @if (!$installment->is_paid)
             <x-ui.form-modal 
-                id="payInstallmentModal_{{ $installment->id }}"
-                title="Registrar Pagamento (Parcela #{{ $installment->installment_number }})"
-                formAction="{{ route('fee-installments.pay', $installment) }}"
-                formMethod="PATCH"
+                id="editDueDateModal_{{ $installment->id }}"
+                title="Alterar Vencimento (Parcela #{{ $installment->installment_number }})"
+                formAction="{{ route('fee-installments.update', $installment) }}" 
+                formMethod="PUT"
             >
-                <div class="alert alert-info small">
-                    <b>Valor da Parcela:</b> R$ {{ number_format($installment->value, 2, ',', '.') }}<br>
-                    @if($installment->paid_value > 0)
-                        <b>Valor já pago:</b> R$ {{ number_format($installment->paid_value, 2, ',', '.') }}<br>
-                        <b>Saldo Devedor:</b> R$ {{ number_format($installment->value - $installment->paid_value, 2, ',', '.') }}
-                    @endif
-                </div>
-                
                 <p class="small text-muted">
-                    Informe o valor pago e a data.
+                    Altere a data de vencimento desta parcela.
                 </p>
-                
+
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-12 mb-3">
                         <div class="form-floating">
                             <input 
-                                type="number"
-                                step="0.01"
-                                class="form-control"
-                                id="paid_value_{{ $installment->id }}"
-                                name="paid_value"
-                                {{-- Sugere o saldo devedor (valor - pago) --}}
-                                value="{{ old('paid_value', number_format($installment->value - (float)$installment->paid_value, 2, '.', '')) }}"
-                                placeholder="Valor Pago"
+                                type="date" 
+                                class="form-control" 
+                                id="due_date_{{ $installment->id }}" 
+                                name="due_date" 
+                                value="{{ old('due_date', $installment->due_date ? $installment->due_date->format('Y-m-d') : '') }}" 
                                 required
                             >
-                            <label for="paid_value_{{ $installment->id }}">Valor Pago (R$)*</label>
-                        </div>
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <div class="form-floating">
-                            <input 
-                                type="date"
-                                class="form-control"
-                                id="paid_at_{{ $installment->id }}"
-                                name="paid_at"
-                                value="{{ old('paid_at', $installment->paid_at ? $installment->paid_at->format('Y-m-d') : now()->format('Y-m-d')) }}"
-                                required
-                            >
-                            <label for="paid_at_{{ $installment->id }}">Data do Pagamento*</label>
+                            <label for="due_date_{{ $installment->id }}">Nova Data de Vencimento</label>
                         </div>
                     </div>
                 </div>
             </x-ui.form-modal>
-        @endif
 
-        @if ($fee && $netBalance > 0)
+            {{-- MODAL 2: Registrar Pagamento --}}
             <x-ui.form-modal 
-                id="renegotiateFeeModal_{{ $fee->id }}"
-                title="Renegociar Saldo Devedor"
-                formAction="{{ route('clients.activation-fee.installments.store', $client) }}"
-                formMethod="POST"
-                size="lg"
+                id="payInstallmentModal_{{ $installment->id }}"
+                title="Confirmar Pagamento (Parcela #{{ $installment->installment_number }})"
+                formAction="{{ route('fee-installments.pay', $installment) }}"
+                formMethod="PATCH"
             >
-                <div class="alert alert-info">
-                    <b>Valor Total do Custo:</b> R$ {{ number_format($fee->total_value, 2, ',', '.') }}<br>
-                    <b>Valor Total Pago:</b> R$ {{ number_format($paidValue, 2, ',', '.') }}<br>
-                    <hr>
-                    <b>Saldo Devedor a Renegociar: R$ {{ number_format($netBalance, 2, ',', '.') }}</b>
+                <div class="alert alert-success text-center">
+                    <h5 class="alert-heading mb-1">R$ {{ number_format($installment->value, 2, ',', '.') }}</h5>
+                    <span class="small">Valor Integral da Parcela</span>
                 </div>
                 
-                <p class="small text-muted">
-                    Informe como você deseja parcelar este saldo devedor. 
-                    <b>Atenção:</b> Todas as parcelas pendentes ou pagas parcialmente serão removidas e substituídas por esta nova configuração.
+                <p class="text-center text-muted mb-4">
+                    Confirme a data em que o pagamento foi realizado.
                 </p>
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <div class="form-floating">
-                            <input 
-                                type="number"
-                                class="form-control"
-                                id="renegotiate_installments_count"
-                                name="installments_count"
-                                value="{{ old('installments_count', 1) }}"
-                                placeholder="1"
-                                min="1"
-                                required
-                            >
-                            <label for="renegotiate_installments_count">Nº de Parcelas*</label>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-3">
+                
+                <div class="row justify-content-center">
+                    <div class="col-md-8 mb-3">
                         <div class="form-floating">
                             <input 
                                 type="date"
-                                class="form-control"
-                                id="renegotiate_first_due_date"
-                                name="first_due_date"
-                                value="{{ old('first_due_date', now()->format('Y-m-d')) }}"
+                                class="form-control text-center"
+                                id="paid_at_{{ $installment->id }}"
+                                name="paid_at"
+                                value="{{ old('paid_at', now()->format('Y-m-d')) }}"
                                 required
                             >
-                            <label for="renegotiate_first_due_date">Data Venc. 1ª Parcela*</label>
+                            <label for="paid_at_{{ $installment->id }}">Data do Pagamento</label>
                         </div>
                     </div>
                 </div>

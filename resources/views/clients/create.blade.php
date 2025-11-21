@@ -1,191 +1,214 @@
 <x-app-layout>
-    {{-- Cabeçalho da Página --}}
     <x-slot name="header">
-        <h2 class="h4 font-weight-bold">
-            Cadastrar Novo Cliente
-        </h2>
+        <div class="container-fluid">
+            <div class="row align-items-start g-2">
+                <div class="col-12">
+                    <h2 class="fw-bold mb-1 text-break text-wrap fs-5 fs-md-4 fs-lg-3">
+                        Cadastrar Novo Cliente
+                    </h2>
+                </div>
+            </div>
+        </div>
     </x-slot>
 
     <x-ui.flash-message />
 
-    @if ($errors->any())
-        <div class="alert alert-danger mb-4">
-             <strong>Opa!</strong> Algo deu errado. Por favor, verifique os campos abaixo.
-            <ul class="mb-0 mt-2">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
-
-    {{-- Dê um ID ao formulário para podermos selecioná-lo --}}
-    <form method="POST" action="{{ route('clients.store') }}" id="client-form" class="bg-white p-4 rounded shadow-sm">
-        @csrf
-
-        {{-- DADOS DE IDENTIFICAÇÃO --}}
-        <h5 class="mb-3 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">Identificação</h5>
-        <div class="row">
-            <div class="col-md-7 mb-3">
-                <div class="form-floating">
-                    <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" placeholder="Nome do Cliente" required>
-                    <label for="name">Nome (Razão Social)</label>
-                    @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-            <div class="col-md-5 mb-3">
-                <div class="form-floating">
-                    <input type="text" class="form-control @error('cnpj') is-invalid @enderror" id="cnpj" name="cnpj" value="{{ old('cnpj') }}" placeholder="CNPJ" required>
-                    <label for="cnpj">CNPJ</label>
-                    @error('cnpj') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-12 mb-3">
-                <div class="form-floating">
-                    <select class="form-select @error('type') is-invalid @enderror" id="type" name="type" required>
-                        <option value="" disabled selected>Selecione um tipo...</option>
-                        @foreach ($types as $type)
-                            <option value="{{ $type->value }}" {{ old('type') == $type->value ? 'selected' : '' }}>
-                                {{ $type->getLabel() }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <label for="type">Tipo de Cliente</label>
-                    @error('type') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-        </div>
-
-        {{-- ENDEREÇO --}}
-        <h5 class="mt-4 mb-3 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">Endereço</h5>
-        <div class="row">
-            <div class="col-md-3 mb-3">
-                <div class="form-floating">
-                    <input type="text" class="form-control @error('postal_code') is-invalid @enderror" id="postal_code" name="postal_code" value="{{ old('postal_code') }}" placeholder="CEP">
-                    <label for="postal_code">CEP</label>
-                    @error('postal_code') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-            <div class="col-md-7 mb-3">
-                <div class="form-floating">
-                    <input type="text" class="form-control @error('street') is-invalid @enderror" id="street" name="street" value="{{ old('street') }}" placeholder="Logradouro">
-                    <label for="street">Logradouro</label>
-                    @error('street') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-            <div class="col-md-2 mb-3">
-                <div class="form-floating">
-                    <input type="text" class="form-control @error('number') is-invalid @enderror" id="number" name="number" value="{{ old('number') }}" placeholder="Nº">
-                    <label for="number">Nº</label>
-                    @error('number') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-4 mb-3">
-                <div class="form-floating">
-                    <input type="text" class="form-control @error('neighborhood') is-invalid @enderror" id="neighborhood" name="neighborhood" value="{{ old('neighborhood') }}" placeholder="Bairro">
-                    <label for="neighborhood">Bairro</label>
-                    @error('neighborhood') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-            <div class="col-md-4 mb-3">
-                <div class="form-floating">
-                    <input type="text" class="form-control @error('city') is-invalid @enderror" id="city" name="city" value="{{ old('city') }}" placeholder="Cidade">
-                    <label for="city">Cidade</label>
-                    @error('city') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-            <div class="col-md-2 mb-3">
-                <div class="form-floating">
-                    <input type="text" class="form-control @error('state') is-invalid @enderror" id="state" name="state" value="{{ old('state') }}" placeholder="UF" maxlength="2">
-                    <label for="state">UF</label>
-                    @error('state') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-             <div class="col-md-2 mb-3">
-                <div class="form-floating">
-                    <input type="text" class="form-control @error('complement') is-invalid @enderror" id="complement" name="complement" value="{{ old('complement') }}" placeholder="Complemento">
-                    <label for="complement">Complemento</label>
-                    @error('complement') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-        </div>
-
-        {{-- DADOS BANCÁRIOS --}}
-        <h5 class="mt-4 mb-3 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">Dados Bancários (Opcional)</h5>
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <div class="form-floating">
-                    <select class="form-select @error('bank') is-invalid @enderror" id="bank" name="bank">
-                        <option value="" disabled selected>Selecione um banco...</option>
-                        @foreach ($banks as $bank)
-                            <option value="{{ $bank->value }}" {{ old('bank') == $bank->value ? 'selected' : '' }}>
-                                {{ $bank->getLabel() }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <label for="bank">Banco</label>
-                    @error('bank') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="form-floating">
-                    <input type="text" class="form-control @error('agency') is-invalid @enderror" id="agency" name="agency" value="{{ old('agency') }}" placeholder="Agência">
-                    <label for="agency">Agência</label>
-                    @error('agency') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="form-floating">
-                    <input type="text" class="form-control @error('account') is-invalid @enderror" id="account" name="account" value="{{ old('account') }}" placeholder="Conta c/ dígito">
-                    <label for="account">Conta</label>
-                    @error('account') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <div class="form-floating">
-                    <select class="form-select @error('pix_type') is-invalid @enderror" id="pix_type" name="pix_type">
-                        <option value="" disabled selected>Selecione um tipo de chave PIX...</option>
-                        @foreach ($pixTypes as $pixType)
-                            <option value="{{ $pixType->value }}" {{ old('pix_type') == $pixType->value ? 'selected' : '' }}>
-                                {{ $pixType->getLabel() }}
-                            </option>
-                        @endforeach
-                    </select>
-                    <label for="pix_type">Tipo de Chave PIX</label>
-                    @error('pix_type') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-            <div class="col-md-6 mb-3">
-                <div class="form-floating">
-                    <input type="text" class="form-control @error('pix_key') is-invalid @enderror" id="pix_key" name="pix_key" value="{{ old('pix_key') }}" placeholder="Chave PIX">
-                    <label for="pix_key">Chave PIX</label>
-                    @error('pix_key') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                </div>
-            </div>
-        </div>
-
-        {{-- BOTÕES DE AÇÃO --}}
-        <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
-            <button type="button" id="btn-fake-data" class="btn btn-outline-warning">
-                <i class="bi bi-magic me-1"></i> Preencher (Teste)
-            </button>
+    <div class="container-fluid">
+        <div class="bg-white p-4 p-md-5 shadow-sm rounded">
             
-            <div>
-                <a href="{{ route('clients.index') }}" class="btn btn-outline-secondary me-2">
-                    Cancelar
-                </a>
-                <button type="submit" class="btn btn-primary">
-                    Salvar Cliente
-                </button>
-            </div>
+            <form method="POST" action="{{ route('clients.store') }}" id="client-form">
+                @csrf
+
+                @if ($errors->any())
+                    <div class="alert alert-danger mb-4">
+                        <strong>Opa!</strong> Verifique os campos abaixo.
+                        <ul class="mb-0 mt-2 small">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                {{-- SEÇÃO: IDENTIFICAÇÃO --}}
+                <h5 class="mb-4 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">
+                    Identificação
+                </h5>
+
+                <div class="row mb-3">
+                    <label for="name" class="col-md-2 col-form-label">Nome (Razão Social) <span class="text-danger">*</span></label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
+                        @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="cnpj" class="col-md-2 col-form-label">CNPJ <span class="text-danger">*</span></label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control @error('cnpj') is-invalid @enderror" id="cnpj" name="cnpj" value="{{ old('cnpj') }}" required>
+                        @error('cnpj') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="type" class="col-md-2 col-form-label">Tipo de Cliente <span class="text-danger">*</span></label>
+                    <div class="col-md-6">
+                        <select name="type" id="type" class="form-select @error('type') is-invalid @enderror" required>
+                            <option value="" disabled selected>Selecione um tipo...</option>
+                            @foreach ($types as $type)
+                                <option value="{{ $type->value }}" {{ old('type') == $type->value ? 'selected' : '' }}>
+                                    {{ $type->getLabel() }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('type') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                {{-- SEÇÃO: ENDEREÇO --}}
+                <h5 class="mt-5 mb-4 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">
+                    Endereço
+                </h5>
+
+                <div class="row mb-3">
+                    <label for="postal_code" class="col-md-2 col-form-label">CEP</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control @error('postal_code') is-invalid @enderror" id="postal_code" name="postal_code" value="{{ old('postal_code') }}">
+                        @error('postal_code') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <div class="form-text">Digite o CEP para buscar o endereço automaticamente.</div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="street" class="col-md-2 col-form-label">Rua / Avenida</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control @error('street') is-invalid @enderror" id="street" name="street" value="{{ old('street') }}">
+                        @error('street') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="number" class="col-md-2 col-form-label">Número</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control @error('number') is-invalid @enderror" id="number" name="number" value="{{ old('number') }}">
+                        @error('number') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="complement" class="col-md-2 col-form-label">Complemento</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control @error('complement') is-invalid @enderror" id="complement" name="complement" value="{{ old('complement') }}">
+                        @error('complement') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="neighborhood" class="col-md-2 col-form-label">Bairro</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control @error('neighborhood') is-invalid @enderror" id="neighborhood" name="neighborhood" value="{{ old('neighborhood') }}">
+                        @error('neighborhood') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="city" class="col-md-2 col-form-label">Cidade</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control @error('city') is-invalid @enderror" id="city" name="city" value="{{ old('city') }}">
+                        @error('city') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="state" class="col-md-2 col-form-label">UF</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control @error('state') is-invalid @enderror" id="state" name="state" value="{{ old('state') }}" maxlength="2">
+                        @error('state') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                {{-- SEÇÃO: DADOS BANCÁRIOS --}}
+                <h5 class="mt-5 mb-4 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">
+                    Dados Bancários (Opcional)
+                </h5>
+
+                <div class="row mb-3">
+                    <label for="bank" class="col-md-2 col-form-label">Banco</label>
+                    <div class="col-md-6">
+                        <select name="bank" id="bank" class="form-select @error('bank') is-invalid @enderror">
+                            <option value="" disabled selected>Selecione um banco...</option>
+                            @foreach ($banks as $bank)
+                                <option value="{{ $bank->value }}" {{ old('bank') == $bank->value ? 'selected' : '' }}>
+                                    {{ $bank->getLabel() }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('bank') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="agency" class="col-md-2 col-form-label">Agência</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control @error('agency') is-invalid @enderror" id="agency" name="agency" value="{{ old('agency') }}">
+                        @error('agency') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="account" class="col-md-2 col-form-label">Conta</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control @error('account') is-invalid @enderror" id="account" name="account" value="{{ old('account') }}" placeholder="Ex: 12345-6">
+                        @error('account') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="pix_type" class="col-md-2 col-form-label">Tipo Chave PIX</label>
+                    <div class="col-md-6">
+                        <select name="pix_type" id="pix_type" class="form-select @error('pix_type') is-invalid @enderror">
+                            <option value="" disabled selected>Selecione o tipo...</option>
+                            @foreach ($pixTypes as $pixType)
+                                <option value="{{ $pixType->value }}" {{ old('pix_type') == $pixType->value ? 'selected' : '' }}>
+                                    {{ $pixType->getLabel() }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('pix_type') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <label for="pix_key" class="col-md-2 col-form-label">Chave PIX</label>
+                    <div class="col-md-6">
+                        <input type="text" class="form-control @error('pix_key') is-invalid @enderror" id="pix_key" name="pix_key" value="{{ old('pix_key') }}">
+                        @error('pix_key') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                    </div>
+                </div>
+
+                {{-- BOTÕES --}}
+                <div class="row mt-5">
+                    <div class="col-md-6 offset-md-2 d-flex justify-content-between">
+                         {{-- Botão Fake Data (Mantido para testes) --}}
+                        <button type="button" id="btn-fake-data" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-magic me-1"></i> Teste
+                        </button>
+                        
+                        <div>
+                            <a href="{{ route('clients.index') }}" class="btn btn-outline-secondary me-2">
+                                Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                Salvar Cliente
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
         </div>
-    </form>
+    </div>
 
     @push('scripts')
     <script>
@@ -200,14 +223,21 @@
             const r = () => Math.floor(Math.random() * 10);
             const randNum = (len) => Math.random().toString().substring(2, len + 2);
             
-            const fakeCnpj = `${r()}${r()}${r()}${r()}${r()}${r()}${r()}${r()}${r()}${r()}${r()}${r()}${r()}${r()}`;
+            // Gerador simples de CNPJ (apenas numérico para passar na mask, validação real é outra história)
+            // O ideal é usar um gerador válido se o backend validar dígito verificador.
+            const fakeCnpj = '56.893.412/0001-56'; // Exemplo estático para não quebrar máscara complexa, ou use lógica de geração válida.
 
             document.getElementById('name').value = 'Cliente Fictício (TESTE)';
-            document.getElementById('cnpj').value = fakeCnpj;
+            // document.getElementById('cnpj').value = fakeCnpj; // O mask vai tratar isso
+            
+            // Disparar input event para máscaras pegarem se necessário, 
+            // mas com IMask as vezes é melhor setar direto no value do elemento masked se tiver acesso, 
+            // ou apenas o value e disparar events.
+            
             document.getElementById('type').value = randomType;
             
             document.getElementById('postal_code').value = '13010040';
-            document.getElementById('postal_code').dispatchEvent(new Event('blur'));
+            document.getElementById('postal_code').dispatchEvent(new Event('blur')); // Dispara o ViaCEP
 
             document.getElementById('number').value = randNum(3);
             document.getElementById('complement').value = 'Sala ' + randNum(2);

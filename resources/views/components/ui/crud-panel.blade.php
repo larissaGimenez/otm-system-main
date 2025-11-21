@@ -1,7 +1,7 @@
 @props([
     'title',
-    'buttonText',
-    'createModalTargetId',
+    'buttonText' => null, 
+    'createModalTargetId' => null,
     'records' => [],
     'columns' => [],
     'emptyStateMessage' => 'Nenhum registro encontrado.',
@@ -13,9 +13,12 @@
             <h6 class="card-title text-muted small text-uppercase mb-2 mb-md-0">
                 {{ $title }} ({{ $records->count() }})
             </h6>
-            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#{{ $createModalTargetId }}">
-                <i class="bi bi-plus-circle me-1"></i> {{ $buttonText }}
-            </button>
+            
+            @if (!empty($buttonText))
+                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#{{ $createModalTargetId }}">
+                    <i class="bi bi-plus-circle me-1"></i> {{ $buttonText }}
+                </button>
+            @endif
         </div>
 
         @if ($records->isEmpty())

@@ -146,8 +146,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/monthly-sales/{monthlySale}', [MonthlySaleController::class, 'update'])->name('monthly-sales.update');
     Route::delete('/monthly-sales/{monthlySale}', [MonthlySaleController::class, 'destroy'])->name('monthly-sales.destroy');
 
+    Route::put('/fee-installments/{feeInstallment}', [FeeInstallmentController::class, 'update'])->name('fee-installments.update');
     Route::patch('/fee-installments/{feeInstallment}/pay', [FeeInstallmentController::class, 'pay'])->name('fee-installments.pay');
-    Route::patch('/fee-installments/{feeInstallment}/unpay', [FeeInstallmentController::class, 'unpay'])->name('fee-installments.unpay');
 });
 
 Route::middleware(['auth', 'role:admin,manager,staff'])->group(function () {

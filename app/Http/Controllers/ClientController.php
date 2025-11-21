@@ -20,10 +20,27 @@ use Illuminate\Support\Facades\Storage;
 
 class ClientController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $clients = Client::orderBy('name')->paginate(10); 
-        return view('clients.index', compact('clients'));
+        $query = Client::query();
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                ->orWhere('cnpj', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        $clients = $query->orderBy('name')->paginate(10)->withQueryString();
+        
+        $types = ClientType::cases(); 
+
+        return view('clients.index', compact('clients', 'types'));
     }
 
     public function create(): View  
