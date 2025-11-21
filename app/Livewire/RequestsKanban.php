@@ -4,31 +4,25 @@ namespace App\Livewire;
 
 use App\Enums\Request\RequestStatus;
 use App\Models\Request;
-use App\Models\Area; // Precisamos disso para o filtro
-use Illuminate\Support\Collection;
+use App\Models\Area;
 use Livewire\Component;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class RequestsKanban extends Component
 {
-    // 1. PROPRIEDADES DOS FILTROS
-    public string $filterUser = 'todos'; // 'todos' ou 'meus'
-    public string $filterArea = 'todas'; // 'todas' ou um ID de área
+    use AuthorizesRequests; 
+
+    public string $filterUser = 'todos'; 
+    public string $filterArea = 'todas'; 
     public string $search = '';
 
-    /**
-     * O Render agora busca os dados com base nos filtros
-     */
     public function render()
     {
-        // 1. Busque todos os status (colunas)
         $statuses = collect(RequestStatus::cases());
 
-        // 2. Crie a query base
-        $query = Request::with(['pdv', 'area', 'requester', 'assignees']);
+        $query = Request::with(['pdv', 'area', 'requester', 'assignees'])
+            ->orderBy('created_at', 'desc'); 
 
-        // 3. APLIQUE OS FILTROS
-        
-        // Filtro de Usuário
         if ($this->filterUser === 'meus') {
             $query->where(function($q) {
                 $q->where('requester_id', auth()->id())
@@ -36,57 +30,47 @@ class RequestsKanban extends Component
             });
         }
 
-        // Filtro de Área
         if ($this->filterArea !== 'todas') {
             $query->where('area_id', $this->filterArea);
         }
 
-        // Filtro de Pesquisa
         if (!empty($this->search)) {
-            // Adicione mais campos se quiser (ex: pdv.name, requester.name)
-            $query->where('title', 'like', '%' . $this->search . '%');
+            $query->where(function($q) {
+                $q->where('title', 'like', '%' . $this->search . '%')
+                  ->orWhere('description', 'like', '%' . $this->search . '%'); 
+            });
         }
 
-        // 4. Execute a query e agrupe
-        $requests = $query->get()->groupBy('status.value');
-
-        // 5. Mapeie os resultados (para garantir colunas vazias)
+        $requests = $query->get()->groupBy(fn($req) => $req->status->value);
         $requestsByStatus = $statuses->mapWithKeys(function ($status) use ($requests) {
             return [
                 $status->value => $requests->get($status->value, collect())
             ];
         });
 
-        // 6. Passe tudo para a view do Livewire
         return view('livewire.requests-kanban', [
             'statuses' => $statuses,
             'requestsByStatus' => $requestsByStatus,
-            'allAreas' => Area::orderBy('name')->get() // Passa as áreas para o select de filtro
+            'allAreas' => Area::orderBy('name')->get()
         ]);
     }
 
-    // No seu RequestsKanban.php (componente Livewire)
-
-    public function handleStatusUpdate($requestId, $newStatus)
+    public function handleStatusUpdate($requestId, $newStatusValue)
     {
         try {
             $request = Request::findOrFail($requestId);
-            
-            // Verifica permissão
             $this->authorize('update', $request);
-            
-            // Atualiza o status
-            $request->status = $newStatus;
-            $request->save();
-            
-            // Recarrega os dados
-            $this->loadRequests();
-            
-            // Mensagem de sucesso
-            session()->flash('success', 'Status atualizado com sucesso!');
-            
+            $newStatusEnum = RequestStatus::tryFrom($newStatusValue);
+
+            if ($newStatusEnum) {
+                $request->status = $newStatusEnum;
+                $request->save();
+                $this->dispatch('status-updated', message: 'Status alterado com sucesso!');
+            }
+
         } catch (\Exception $e) {
-            session()->flash('error', 'Erro ao atualizar status: ' . $e->getMessage());
+            $this->dispatch('refresh-kanban'); 
+            session()->flash('error', 'Erro ao atualizar: ' . $e->getMessage());
         }
     }
 }
