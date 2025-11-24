@@ -27,7 +27,7 @@ class TeamController extends Controller
             });
         }
 
-        $teams = $query->withTrashed()->latest()->paginate(10);
+        $teams = $query->latest()->paginate(10);
 
         return view('teams.index', compact('teams'));
     }
@@ -117,15 +117,26 @@ class TeamController extends Controller
     public function destroy(Team $team): RedirectResponse
     {
         try {
-            $team->delete();
-            return redirect()->route('management.teams.index')
-                             ->with('success', 'Equipe excluída com sucesso.');
+            DB::transaction(function () use ($team) {
+                // Remove todos os usuários associados
+                $team->users()->detach();
+
+                // Exclui (soft delete)
+                $team->delete();
+            });
+
+            return redirect()
+                ->route('management.teams.index')
+                ->with('success', 'Equipe excluída e usuários desassociados com sucesso.');
         } catch (\Exception $e) {
             Log::error('Falha ao excluir equipe: ' . $e->getMessage());
-            return redirect()->back()
-                             ->with('error', 'Ocorreu um erro ao excluir a equipe. Tente novamente.');
+
+            return redirect()
+                ->back()
+                ->with('error', 'Ocorreu um erro ao excluir a equipe. Tente novamente.');
         }
     }
+
 
     public function removeUser(Request $request, Team $team, User $user): RedirectResponse
     {

@@ -1,242 +1,113 @@
 <x-app-layout>
-    {{-- Cabeçalho da Página --}}
     <x-slot name="header">
-        <h2 class="h4 font-weight-bold">
-            Editar Equipamento
-        </h2>
+        <h2 class="h4 fw-bold">Editar Equipamento</h2>
     </x-slot>
 
-    {{-- Mensagens de validação --}}
     @if ($errors->any())
         <div class="alert alert-danger mb-4">
             <ul class="mb-0">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
+                @foreach ($errors->all() as $e)
+                    <li>{{ $e }}</li>
                 @endforeach
             </ul>
         </div>
     @endif
 
-    {{-- Formulário --}}
     <form method="POST" action="{{ route('equipments.update', $equipment) }}" enctype="multipart/form-data" class="bg-white p-4 rounded shadow-sm">
         @csrf
         @method('PUT')
 
-        <div class="mb-4 d-flex justify-content-between align-items-start flex-wrap">
+        <div class="d-flex justify-content-between mb-4">
             <div>
-                <h2 class="h5 font-weight-bold mb-1">Informações do Equipamento</h2>
-                <p class="text-muted small mb-0">Atualize os dados abaixo e clique em salvar.</p>
+                <h5 class="fw-bold mb-1">Informações do Equipamento</h5>
             </div>
-            <div class="small text-muted mt-2 mt-sm-0 text-end">
-                <div class="mb-1">
-                    <span class="badge {{ ($equipment->status ?? 'Disponível') === 'Disponível' ? 'bg-success' : 'bg-secondary' }}">
-                        {{ $equipment->status ?? 'Disponível' }}
+            <div class="small">
+                @if($equipment->status)
+                    <span style="color: {{ $equipment->status->color }}; font-weight:bold;">
+                        • {{ $equipment->status->name }}
                     </span>
-                </div>
-                <span class="me-2">Criado em: {{ $equipment->created_at?->format('d/m/Y H:i') }}</span>
-                <span>Atualizado em: {{ $equipment->updated_at?->format('d/m/Y H:i') }}</span>
+                @endif
             </div>
         </div>
 
-        {{-- DADOS GERAIS --}}
-        <h5 class="mt-4 mb-3 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">Dados Gerais</h5>
+        <h5 class="mt-3 mb-3 border-bottom pb-2 small text-uppercase text-muted">Dados Gerais</h5>
 
-        <div class="row">
-            {{-- NOME (máx. 50) --}}
-            <div class="col-md-6 mb-3">
-                <div class="form-floating position-relative">
-                    <input
-                        type="text"
-                        class="form-control form-control-sm"
-                        id="name"
-                        name="name"
-                        value="{{ old('name', $equipment->name) }}"
-                        placeholder="Nome do Equipamento"
-                        maxlength="50"
-                        required
-                    >
-                    <label for="name">Nome do Equipamento</label>
-                    <small id="nameCounter" class="text-muted position-absolute end-0 bottom-0 me-2 mb-1 small">0 / 50</small>
-                </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Nome *</label>
+                <input type="text" class="form-control" name="name" value="{{ old('name', $equipment->name) }}" required maxlength="50">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Tipo *</label>
+                <select class="form-select" name="equipment_type_id" required>
+                    @foreach ($types as $type)
+                        <option value="{{ $type->id }}" @selected(old('equipment_type_id', $equipment->equipment_type_id) == $type->id)>
+                            {{ $type->name }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
 
-            {{-- TIPO --}}
-            <div class="col-md-3 mb-3">
-                <div class="form-floating">
-                    <input
-                        type="text"
-                        class="form-control form-control-sm"
-                        id="type"
-                        name="type"
-                        value="{{ old('type', $equipment->type) }}"
-                        placeholder="Tipo (ex: Impressora)"
-                        required
-                    >
-                    <label for="type">Tipo</label>
-                </div>
-            </div>
-
-            {{-- STATUS (somente visual) --}}
-            <div class="col-md-3 mb-3">
-                <div class="form-floating">
-                    <input
-                        type="text"
-                        class="form-control form-control-sm"
-                        id="status_view"
-                        value="{{ $equipment->status ?? 'Disponível' }}"
-                        placeholder="Status"
-                        disabled
-                    >
-                    <label for="status_view">Status</label>
-                </div>
+            <div class="col-md-3">
+                <label class="form-label">Status *</label>
+                <select class="form-select" name="equipment_status_id" required>
+                    @foreach ($statuses as $status)
+                        <option value="{{ $status->id }}" @selected(old('equipment_status_id', $equipment->equipment_status_id) == $status->id)>
+                            {{ $status->name }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
         </div>
 
-        <div class="row">
-            {{-- MARCA --}}
-            <div class="col-md-6 mb-3">
-                <div class="form-floating">
-                    <input
-                        type="text"
-                        class="form-control form-control-sm"
-                        id="brand"
-                        name="brand"
-                        value="{{ old('brand', $equipment->brand) }}"
-                        placeholder="Marca"
-                    >
-                    <label for="brand">Marca</label>
-                </div>
-            </div>
+        <h5 class="mt-4 mb-3 border-bottom pb-2 small text-uppercase text-muted">Detalhes Técnicos</h5>
 
-            {{-- MODELO --}}
-            <div class="col-md-6 mb-3">
-                <div class="form-floating">
-                    <input
-                        type="text"
-                        class="form-control form-control-sm"
-                        id="model"
-                        name="model"
-                        value="{{ old('model', $equipment->model) }}"
-                        placeholder="Modelo"
-                    >
-                    <label for="model">Modelo</label>
-                </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Marca</label>
+                <input type="text" class="form-control" name="brand" value="{{ old('brand', $equipment->brand) }}">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Modelo</label>
+                <input type="text" class="form-control" name="model" value="{{ old('model', $equipment->model) }}">
             </div>
         </div>
 
-        <div class="row">
-            {{-- Nº DE SÉRIE (único e opcional) --}}
-            <div class="col-md-6 mb-3">
-                <div class="form-floating">
-                    <input
-                        type="text"
-                        class="form-control form-control-sm"
-                        id="serial_number"
-                        name="serial_number"
-                        value="{{ old('serial_number', $equipment->serial_number) }}"
-                        placeholder="Número de Série"
-                    >
-                    <label for="serial_number">Número de Série</label>
-                </div>
-                <small class="text-muted">Deixe em branco se não houver. Deve ser único no sistema.</small>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">Número de Série</label>
+                <input type="text" class="form-control" name="serial_number" value="{{ old('serial_number', $equipment->serial_number) }}">
             </div>
-
-            {{-- PATRIMÔNIO (único e opcional) --}}
-            <div class="col-md-6 mb-3">
-                <div class="form-floating">
-                    <input
-                        type="text"
-                        class="form-control form-control-sm"
-                        id="asset_tag"
-                        name="asset_tag"
-                        value="{{ old('asset_tag', $equipment->asset_tag) }}"
-                        placeholder="Patrimônio"
-                    >
-                    <label for="asset_tag">Patrimônio</label>
-                </div>
-                <small class="text-muted">Deixe em branco se não houver. Deve ser único no sistema.</small>
+            <div class="col-md-6">
+                <label class="form-label">Patrimônio</label>
+                <input type="text" class="form-control" name="asset_tag" value="{{ old('asset_tag', $equipment->asset_tag) }}">
             </div>
         </div>
 
-        {{-- DESCRIÇÃO (máx. 500) --}}
-        <h5 class="mt-4 mb-3 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">Descrição</h5>
-        <div class="row">
-            <div class="col-md-12 mb-3">
-                <div class="form-floating position-relative">
-                    <textarea
-                        class="form-control form-control-sm"
-                        id="description"
-                        name="description"
-                        placeholder="Descrição do Equipamento"
-                        maxlength="500"
-                        style="height: 120px"
-                    >{{ old('description', $equipment->description) }}</textarea>
-                    <label for="description">Descrição (Opcional)</label>
-                    <small id="descCounter" class="text-muted position-absolute end-0 bottom-0 me-2 mb-1 small">0 / 500</small>
-                </div>
-            </div>
+        <h5 class="mt-4 mb-3 border-bottom pb-2 small text-uppercase text-muted">Descrição</h5>
+
+        <textarea class="form-control mb-4" rows="4" name="description">{{ old('description', $equipment->description) }}</textarea>
+
+        <h5 class="mt-4 mb-3 border-bottom pb-2 small text-uppercase text-muted">Fotos</h5>
+
+        <div class="mb-3">
+            <label class="form-label">Adicionar novas fotos</label>
+            <input type="file" class="form-control" name="photos[]" multiple accept="image/*">
         </div>
 
-        {{-- FOTOS --}}
-        <h5 class="mt-4 mb-3 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">Fotos do Equipamento</h5>
-        <div class="row">
-            <div class="col-md-12 mb-3">
-                <label for="photos" class="form-label">Adicionar novas fotos</label>
-                <input class="form-control form-control-sm" type="file" id="photos" name="photos[]" multiple accept="image/*">
-                <small class="text-muted">Você pode selecionar múltiplas imagens. Tamanho máximo por arquivo: 2 MB.</small>
-            </div>
-        </div>
-
-        @if(!empty($equipment->photos) && is_array($equipment->photos))
-            <div class="row g-3">
-                <div class="col-12">
-                    <div class="small text-muted mb-2">Fotos atuais</div>
-                </div>
+        @if ($equipment->photos)
+            <div class="row g-3 mb-4">
                 @foreach ($equipment->photos as $photo)
-                    <div class="col-6 col-sm-4 col-md-3 col-lg-2">
-                        <div class="border rounded p-2 text-center">
-                            <img src="{{ asset('storage/'.$photo) }}" alt="Foto do equipamento" class="img-fluid rounded" style="max-height: 120px; object-fit: cover;">
-                        </div>
+                    <div class="col-4 col-md-2">
+                        <img src="{{ asset('storage/'.$photo) }}" class="img-fluid rounded border" style="height:100px;object-fit:cover;">
                     </div>
                 @endforeach
             </div>
         @endif
 
-        {{-- BOTÕES --}}
-        <div class="mt-4 pt-3 border-top d-flex justify-content-end align-items-center">
-            <a href="{{ route('equipments.index') }}" class="btn btn-outline-secondary btn-sm me-2">
-                Cancelar
-            </a>
-            <button type="submit" class="btn btn-primary btn-sm">
-                Salvar Alterações
-            </button>
+        <div class="d-flex justify-content-end border-top pt-3">
+            <a href="{{ route('equipments.index') }}" class="btn btn-outline-secondary me-2">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Salvar</button>
         </div>
     </form>
-
-    @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const nameInput = document.getElementById('name');
-            const descInput = document.getElementById('description');
-            const nameCounter = document.getElementById('nameCounter');
-            const descCounter = document.getElementById('descCounter');
-
-            const updateCounter = (input, counter, max) => {
-                const len = input.value.length;
-                counter.textContent = `${len} / ${max}`;
-                counter.classList.toggle('text-danger', len > max);
-            };
-
-            if (nameInput && nameCounter) {
-                updateCounter(nameInput, nameCounter, 50);
-                nameInput.addEventListener('input', () => updateCounter(nameInput, nameCounter, 50));
-            }
-
-            if (descInput && descCounter) {
-                updateCounter(descInput, descCounter, 500);
-                descInput.addEventListener('input', () => updateCounter(descInput, descCounter, 500));
-            }
-        });
-    </script>
-    @endpush
 </x-app-layout>

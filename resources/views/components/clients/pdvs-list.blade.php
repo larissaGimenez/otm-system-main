@@ -13,12 +13,10 @@
 
             <button class="btn btn-sm btn-outline-primary"
                     data-bs-toggle="modal"
-                    data-bs-target="#modalAddPdv">
+                    data-bs-target="#modalAttachPdv">
                 <i class="bi bi-plus-lg me-1"></i> Associar PDV
             </button>
         </div>
-
-        <x-clients.modals.add-pdv :client="$client" :availablePdvs="$availablePdvs" />
 
         @if ($pdvs->isEmpty())
             <div class="text-center text-muted py-5">
@@ -30,8 +28,7 @@
                 <table class="table table-hover align-middle">
                     <thead class="text-muted small">
                         <tr>
-                            <th scope="col">Nome do PDV</th>
-                            <th scope="col">Endereço</th>
+                            <th scope="col">Codigo do PDV</th>
                             <th scope="col">Status</th>
                             <th scope="col" class="text-end">Ações</th>
                         </tr>
@@ -40,15 +37,12 @@
                         @foreach ($pdvs as $pdv)
                             <tr>
                                 <td class="fw-bold">{{ $pdv->name }}</td>
-                                <td class="small">
-                                    {{ $pdv->street ?? 'N/A' }},
-                                    {{ $pdv->number ?? 'S/N' }}
-                                </td>
                                 <td>
-                                    <span class="badge rounded-pill bg-{{ $pdv->status->getColorClass() }}">
-                                        {{ $pdv->status->getLabel() }}
+                                    <span class="badge rounded-pill bg-{{ $pdv->status->color }}">
+                                        {{ $pdv->status->name }}
                                     </span>
                                 </td>
+
                                 <td class="text-end">
                                     <a href="{{ route('pdvs.show', $pdv) }}"
                                        class="btn btn-sm btn-outline-primary me-1"
@@ -97,16 +91,22 @@
             @else
                 <div class="mb-3">
                     <label for="pdv_id" class="form-label">Selecione o PDV</label>
-                    {{-- Busca simples client-side (opcional) --}}
-                    <input type="text" class="form-control form-control-sm mb-2" placeholder="Filtrar por nome..."
-                           oninput="(function(i){const q=i.value.toLowerCase();document.querySelectorAll('#pdvOptions option').forEach(o=>o.hidden = !o.text.toLowerCase().includes(q));})(this)">
+
+                    <input type="text" 
+                           class="form-control form-control-sm mb-2"
+                           placeholder="Filtrar por nome..."
+                           oninput="(function(i){
+                               const q = i.value.toLowerCase();
+                               document.querySelectorAll('#pdvOptions option').forEach(
+                                   o => o.hidden = !o.text.toLowerCase().includes(q)
+                               );
+                           })(this)">
 
                     <select id="pdv_id" name="pdv_id" class="form-select" required size="8">
                         <optgroup id="pdvOptions" label="PDVs disponíveis">
                             @foreach ($availablePdvs as $p)
                                 <option value="{{ $p->id }}">
                                     {{ $p->name }}
-                                    @if($p->city) — {{ $p->city }}/{{ $p->state }} @endif
                                 </option>
                             @endforeach
                         </optgroup>

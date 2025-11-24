@@ -178,4 +178,20 @@ class ClientController extends Controller
 
         return back()->with('success', 'PDV desassociado com sucesso.');
     }
+
+    public function search(Request $request)
+    {
+        $search = $request->get('q');
+
+        $query = Client::query()
+            ->whereDoesntHave('pdvs'); // excluir clientes já usados
+
+        if ($search) {
+            $query->where('name', 'like', "%{$search}%");
+        }
+
+        return $query->orderBy('name')
+            ->limit(20)
+            ->get(['id', 'name']);
+    }
 }

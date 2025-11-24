@@ -16,6 +16,8 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, HasUuids, SoftDeletes;
 
+    protected $withTrashed = true;
+
     protected $fillable = [
         'name',
         'email',
@@ -91,4 +93,12 @@ class User extends Authenticatable
         return $this->belongsToMany(Request::class, 'request_user')
                     ->withTimestamps();
     }
+    
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->withTrashed()
+                    ->where($field ?? 'id', $value)
+                    ->firstOrFail();
+    }
+
 }

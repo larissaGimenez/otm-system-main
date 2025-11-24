@@ -25,7 +25,7 @@
                     {{ $equipment->name }}
                 </a>
             </td>
-            <td>{{ $equipment->type }}</td>
+            <td>{{ $equipment->type->name ?? 'Sem tipo' }}</td>
             <td>{{ $equipment->pivot->created_at->format('d/m/Y') }}</td>
             <td class="text-end">
                 @php

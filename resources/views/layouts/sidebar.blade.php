@@ -136,6 +136,7 @@
                     <ul class="nav flex-column ps-4 pt-1">
                         <li class="nav-item"><a href="{{ route('equipments.index') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('equipments.index') ? 'fw-bold' : '' }}">Listar</a></li>
                         <li class="nav-item"><a href="{{ route('equipments.create') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('equipments.create') ? 'fw-bold' : '' }}">Criar um novo</a></li>
+                        <li class="nav-item"><a href="{{ route('settings.equipments.index') }}" class="nav-link text-dark small py-1 {{ request()->routeIs('settings.equipments.*') ? 'fw-bold' : '' }}">Configurações</a></li>
                     </ul>
                 </div>
             </li>

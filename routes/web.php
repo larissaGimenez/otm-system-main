@@ -28,6 +28,9 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\Settings\PdvSettingsController;
 use App\Http\Controllers\Settings\PdvStatusController;
 use App\Http\Controllers\Settings\PdvTypeController;
+use App\Http\Controllers\Settings\EquipmentsSettingsController;
+use App\Http\Controllers\Settings\EquipmentStatusController;
+use App\Http\Controllers\Settings\EquipmentTypeController;
 
 Route::middleware('guest')->group(function () {
     Route::get('/', fn () => redirect()->route('login'));
@@ -88,11 +91,18 @@ Route::middleware('auth')->group(function () {
         });
     });
 
+    Route::get('/clients/search', [ClientController::class, 'search'])->name('clients.search');
+
     Route::prefix('settings/pdv')->name('settings.pdv.')->group(function () {
         Route::get('/', [PdvSettingsController::class, 'index'])->name('index');
         Route::resource('statuses', PdvStatusController::class);
         Route::resource('types', PdvTypeController::class);
     });
+
+    Route::get('/pdvs/check-name', [PdvController::class, 'checkName'])
+        ->name('pdvs.check-name');
+        Route::get('/clients/search', [ClientController::class, 'search'])
+        ->name('clients.search');
 
     Route::prefix('equipamentos')->name('equipments.')->group(function () {
         Route::get('/', [EquipmentController::class, 'index'])->name('index');
@@ -107,7 +117,14 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{equipment}/media/{type}/{index}', [EquipmentController::class, 'destroyMedia'])->name('media.destroy');
     });
 
-    Route::resource('external-ids', ExternalIdController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::prefix('settings/equipments')->name('settings.equipments.')->group(function () {
+        Route::get('/', [EquipmentsSettingsController::class, 'index'])->name('index');
+        Route::resource('statuses', EquipmentStatusController::class);
+        Route::resource('types', EquipmentTypeController::class);
+    });
+
+    Route::resource('external-ids', ExternalIdController::class)
+        ->only(['index', 'store', 'update', 'destroy']);
 
     Route::prefix('chamados')->name('requests.')->group(function () {
         Route::get('/', [RequestController::class, 'index'])->name('index');

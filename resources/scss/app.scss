@@ -353,3 +353,25 @@ body {
         background: #555;
     }
 }
+
+//flashmessage
+
+.alert {
+    border-left-width: 4px;
+}
+
+.alert-success {
+    border-left-color: #198754;
+}
+
+.alert-danger {
+    border-left-color: #dc3545;
+}
+
+.alert-warning {
+    border-left-color: #ffc107;
+}
+
+.alert-info {
+    border-left-color: #0dcaf0;
+}

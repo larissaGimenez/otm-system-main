@@ -11,20 +11,25 @@ return new class extends Migration
         Schema::create('equipments', function (Blueprint $table) {
 
             $table->uuid('id')->primary(); 
+
             $table->foreignId('equipment_type_id')
                   ->nullable()
-                  ->constrained('equipment_types');
+                  ->constrained('equipment_types')
+                  ->nullOnDelete();
 
             $table->foreignId('equipment_status_id')
                   ->nullable()
-                  ->constrained('equipment_statuses');
+                  ->constrained('equipment_statuses')
+                  ->nullOnDelete();
+
+            $table->string('name');
 
             $table->string('slug')->unique();
 
             $table->text('description')->nullable();
             $table->string('brand')->nullable();
             $table->string('model')->nullable();
-            
+
             $table->string('serial_number')->nullable()->unique();
             $table->string('asset_tag')->nullable()->unique();
 

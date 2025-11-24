@@ -6,7 +6,7 @@
 
     <x-slot name="status">
         <span class="badge rounded-pill {{ $equipment->status === 'Ativo' ? 'bg-success' : 'bg-secondary' }}">
-            {{ $equipment->status }}
+            {{ $equipment->status->name ?? '—' }}
         </span>
     </x-slot>
 

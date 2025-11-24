@@ -9,11 +9,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Equipment;
-use App\Models\Client;
-use App\Models\Request;
-use App\Models\PdvStatus;
-use App\Models\PdvType;
 
 class Pdv extends Model
 {
@@ -23,8 +18,8 @@ class Pdv extends Model
 
     protected $fillable = [
         'client_id',
-        'pdv_status_id', 
-        'pdv_type_id',   
+        'pdv_status_id',
+        'pdv_type_id',
         'name',
         'slug',
         'description',
@@ -47,7 +42,7 @@ class Pdv extends Model
 
     public function client(): BelongsTo
     {
-        return $this->belongsTo(Client::class, 'client_id');
+        return $this->belongsTo(Client::class);
     }
 
     public function requests(): HasMany

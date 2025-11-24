@@ -112,25 +112,29 @@ class UserController extends Controller
         ]);
 
         try {
+            if ($user->trashed()) {
+                $user->restore();
+            }
+
             if (!empty($validatedData['password'])) {
                 $validatedData['password'] = Hash::make($validatedData['password']);
             } else {
                 unset($validatedData['password']);
             }
-            
+
             $validatedData['cpf'] = preg_replace('/\D/', '', $request->cpf);
             $validatedData['phone'] = preg_replace('/\D/', '', $request->phone);
             $validatedData['postal_code'] = preg_replace('/\D/', '', $request->postal_code);
-            
+
             $user->update($validatedData);
 
             return redirect()->route('management.users.index')
-                             ->with('success', 'Usuário atualizado com sucesso.');
+                            ->with('success', 'Usuário atualizado com sucesso.');
         } catch (\Exception $e) {
             Log::error('Falha ao atualizar usuário: ' . $e->getMessage());
             return redirect()->back()
-                             ->with('error', 'Ocorreu um erro ao salvar as alterações. Tente novamente.')
-                             ->withInput();
+                            ->with('error', 'Ocorreu um erro ao salvar as alterações. Tente novamente.')
+                            ->withInput();
         }
     }
 

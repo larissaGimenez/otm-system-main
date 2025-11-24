@@ -21,7 +21,9 @@
                 x-init="new TomSelect($el, { plugins: ['remove_button'] })"
             >
                 @foreach ($availableEquipments as $equipment)
-                    <option value="{{ $equipment->id }}">{{ $equipment->name }} ({{ $equipment->type }})</option>
+                    <option value="{{ $equipment->id }}">
+                        {{ $equipment->name }} ({{ $equipment->type->name ?? 'Sem tipo' }})
+                    </option>
                 @endforeach
             </select>
         @else

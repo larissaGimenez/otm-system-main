@@ -3,14 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class EquipmentStatus extends Model
 {
     protected $fillable = ['name', 'slug', 'color'];
 
-    public function equipments(): HasMany
+    public function equipments()
     {
-        return $this->hasMany(Equipment::class);
+        return $this->hasMany(Equipment::class, 'equipment_status_id');
     }
 }

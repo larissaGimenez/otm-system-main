@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class ExternalId extends Model
@@ -14,19 +14,24 @@ class ExternalId extends Model
     protected $table = 'external_ids';
 
     protected $fillable = [
-        'item_uuid',
-        'item_name',
-        'external_id',
+        'item_id',
+        'item_type',
         'system_name',
+        'external_id',
+        'meta',
     ];
 
-    public function scopeForItem($query, string $itemUuid)
+    protected $casts = [
+        'meta' => 'array',
+    ];
+
+    public function item()
     {
-        return $query->where('item_id', $itemUuid);
+        return $this->morphTo();
     }
 
-    public function scopeForSystem($query, string $systemName)
+    public function scopeForItem($query, string $uuid)
     {
-        return $query->where('system_name', $systemName);
+        return $query->where('item_id', $uuid);
     }
 }

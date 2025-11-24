@@ -12,11 +12,11 @@
     </x-slot>
 
     <x-ui.flash-message />
-    
+
     <div class="container-fluid">
         <div class="bg-white p-4 p-md-5 shadow-sm rounded">
-            
-            <form method="POST" action="{{ route('pdvs.store') }}" enctype="multipart/form-data">
+
+            <form method="POST" action="{{ route('pdvs.store') }}">
                 @csrf
 
                 @if ($errors->any())
@@ -29,22 +29,54 @@
                     Dados Principais
                 </h5>
 
-                {{-- Rótulo alterado para Código do PDV --}}
+                {{-- Código do PDV --}}
                 <div class="row mb-3">
-                    <label for="name" class="col-md-2 col-form-label">Código do PDV <span class="text-danger">*</span></label>
+                    <label for="name" class="col-md-2 col-form-label">
+                        Código do PDV <span class="text-danger">*</span>
+                    </label>
                     <div class="col-md-6">
-                        {{-- Mantive name="name" para não quebrar o Controller, já que o banco usa a coluna 'name' --}}
-                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name') }}" required>
-                        @error('name') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <input type="text" 
+                               id="name" 
+                               name="name"
+                               value="{{ old('name') }}"
+                               class="form-control @error('name') is-invalid @enderror"
+                               required>
+
+                        @error('name') 
+                            <div class="invalid-feedback">{{ $message }}</div> 
+                        @enderror
+
+                        <div id="name-feedback" class="small mt-1"></div>
                     </div>
                 </div>
 
-                {{-- Campo TIPO removido daqui --}}
-
+                {{-- Cliente --}}
                 <div class="row mb-3">
-                    <label for="pdv_status_id" class="col-md-2 col-form-label">Status <span class="text-danger">*</span></label>
+                    <label for="client_id" class="col-md-2 col-form-label">
+                        Cliente <span class="text-danger">*</span>
+                    </label>
                     <div class="col-md-6">
-                        <select name="pdv_status_id" id="pdv_status_id" class="form-select @error('pdv_status_id') is-invalid @enderror" required>
+                        <select id="client_id" name="client_id" class="form-select @error('client_id') is-invalid @enderror" required>
+                            @foreach($initialClients as $client)
+                                <option value="{{ $client->id }}">{{ $client->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('client_id') 
+                            <div class="invalid-feedback">{{ $message }}</div> 
+                        @enderror
+                    </div>
+                </div>
+
+                {{-- Status --}}
+                <div class="row mb-3">
+                    <label for="pdv_status_id" class="col-md-2 col-form-label">
+                        Status <span class="text-danger">*</span>
+                    </label>
+                    <div class="col-md-6">
+                        <select id="pdv_status_id" 
+                                name="pdv_status_id" 
+                                class="form-select @error('pdv_status_id') is-invalid @enderror" 
+                                required>
                             <option value="" disabled selected>Selecione um status...</option>
                             @foreach($statuses as $status)
                                 <option value="{{ $status->id }}" {{ old('pdv_status_id') == $status->id ? 'selected' : '' }}>
@@ -52,40 +84,31 @@
                                 </option>
                             @endforeach
                         </select>
-                        @error('pdv_status_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+
+                        @error('pdv_status_id') 
+                            <div class="invalid-feedback">{{ $message }}</div> 
+                        @enderror
                     </div>
                 </div>
 
+                {{-- Observações --}}
                 <div class="row mb-3">
                     <label for="description" class="col-md-2 col-form-label">Observações</label>
                     <div class="col-md-6">
-                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="5" placeholder="Insira o endereço e outras informações relevantes...">{{ old('description') }}</textarea>
-                        @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        <textarea id="description" name="description" 
+                                  rows="5"
+                                  class="form-control @error('description') is-invalid @enderror"
+                                  placeholder="Insira o endereço e outras informações relevantes...">{{ old('description') }}</textarea>
+
+                        @error('description') 
+                            <div class="invalid-feedback">{{ $message }}</div> 
+                        @enderror
+
                         <div class="form-text">Informações adicionais e localização.</div>
                     </div>
                 </div>
 
-                <h5 class="mt-5 mb-4 border-bottom pb-2 font-weight-bold small text-uppercase text-muted">
-                    Mídia
-                </h5>
-
-                <div class="row mb-3">
-                    <label for="photos" class="col-md-2 col-form-label">Fotos</label>
-                    <div class="col-md-6">
-                        <input class="form-control @error('photos.*') is-invalid @enderror" type="file" id="photos" name="photos[]" multiple accept="image/*">
-                        @error('photos.*') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                        <div class="form-text">Formatos aceitos: JPG, PNG. Múltiplos arquivos permitidos.</div>
-                    </div>
-                </div>
-
-                <div class="row mb-3">
-                    <label for="videos" class="col-md-2 col-form-label">Vídeos</label>
-                    <div class="col-md-6">
-                        <input class="form-control @error('videos.*') is-invalid @enderror" type="file" id="videos" name="videos[]" multiple accept="video/*">
-                        @error('videos.*') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                    </div>
-                </div>
-
+                {{-- Botões --}}
                 <div class="row mt-5">
                     <div class="col-md-6 offset-md-2">
                         <a href="{{ route('pdvs.index') }}" class="btn btn-outline-secondary me-2">
@@ -98,6 +121,66 @@
                 </div>
 
             </form>
+
         </div>
     </div>
+
+    @push('scripts')
+    {{-- Verificação instantânea do Código do PDV --}}
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let timer = null;
+        const input = document.getElementById("name");
+        const feedback = document.getElementById("name-feedback");
+
+        input.addEventListener("input", function () {
+            clearTimeout(timer);
+            const name = this.value.trim();
+            feedback.innerHTML = "";
+
+            if (name.length < 3) return;
+
+            timer = setTimeout(() => {
+                fetch(`{{ route('pdvs.check-name') }}?name=${encodeURIComponent(name)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.exists) {
+                            feedback.innerHTML = "<span class='text-danger'>Este código já está em uso.</span>";
+                        } else {
+                            feedback.innerHTML = "<span class='text-success'>Código disponível ✓</span>";
+                        }
+                    });
+            }, 350);
+        });
+    });
+    </script>
+
+    {{-- Select inteligente (TomSelect) com resultados iniciais + busca incremental --}}
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        new TomSelect("#client_id", {
+            valueField: "id",
+            labelField: "name",
+            searchField: "name",
+
+            // Mostra clientes iniciais
+            options: [
+                @foreach($initialClients as $client)
+                    { id: "{{ $client->id }}", name: "{{ $client->name }}" },
+                @endforeach
+            ],
+
+            load: function(query, callback) {
+                fetch("{{ route('clients.search') }}?q=" + encodeURIComponent(query))
+                    .then(res => res.json())
+                    .then(callback)
+                    .catch(() => callback());
+            },
+
+            maxOptions: 50,
+            placeholder: "Selecione um cliente...",
+        });
+    });
+    </script>
+    @endpush
 </x-app-layout>

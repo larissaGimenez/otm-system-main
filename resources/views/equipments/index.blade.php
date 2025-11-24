@@ -1,81 +1,165 @@
-<x-list-layout 
-    :collection="$equipments"
-    :searchRoute="route('equipments.index')"
-    :createRoute="route('equipments.create')"
-    createText="Novo Equipamento"
-    searchPlaceholder="Buscar por nome, tipo ou descrição..."
-    deleteModalText="Tem certeza que deseja excluir este Equipamento?">
-
-    {{-- Título principal da página --}}
+<x-app-layout>
     <x-slot:header>
-        Gerenciar Equipamentos
+        <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb breadcrumb-sm mb-0">
+                <li class="breadcrumb-item"><a href="#" class="text-decoration-none">Dashboard</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Equipamentos</li>
+            </ol>
+        </nav>
     </x-slot:header>
 
-    {{-- Cabeçalho da tabela (desktop) --}}
-    <x-slot:tableHeader>
-        <tr class="text-muted small">
-            <th scope="col" class="py-3">NOME DO EQUIPAMENTO</th>
-            <th scope="col" class="py-3">TIPO</th>
-            <th scope="col" class="py-3">DESCRIÇÃO</th>
-            <th scope="col" class="py-3 text-end">AÇÕES</th>
-        </tr>
-    </x-slot:tableHeader>
+    <div class="container-fluid py-4">
 
-    {{-- Linhas da tabela (desktop) --}}
-    @foreach ($equipments as $equipment)
-        <tr class="border-bottom" data-href="{{ route('equipments.show', $equipment) }}">
-            <td class="py-3">{{ $equipment->name }}</td>
-            <td class="py-3">{{ $equipment->type }}</td>
-            <td class="py-3">
-                {{ \Illuminate\Support\Str::limit($equipment->description ?? '—', 80) }}
-            </td>
-            <td class="py-3 text-end">
-                <div class="btn-group btn-group-sm" role="group">
-                    <a href="{{ route('equipments.edit', $equipment) }}" class="btn btn-outline-primary" title="Editar">
-                        <i class="bi bi-pencil-fill"></i>
-                    </a>
-                    <button type="button" class="btn btn-outline-danger" 
-                            data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                            data-action="{{ route('equipments.destroy', $equipment) }}" 
-                            title="Excluir">
-                        <i class="bi bi-trash-fill"></i>
-                    </button>
-                </div>
-            </td>
-        </tr>
-    @endforeach
-
-    {{-- Lista em cartões (mobile) --}}
-    <x-slot:mobileList>
-        @foreach ($equipments as $equipment)
-            <a href="{{ route('equipments.show', $equipment) }}" class="text-decoration-none text-dark">
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h5 class="card-title mb-1">{{ $equipment->name }}</h5>
-                                <h6 class="card-subtitle mb-2 text-muted">{{ $equipment->type }}</h6>
-                            </div>
-                        </div>
-                        <hr class="my-2">
-                        <p class="card-text small mb-0">
-                            <strong>Descrição:</strong>
-                            {{ \Illuminate\Support\Str::limit($equipment->description ?? 'Não informada', 120) }}
-                        </p>
-                    </div>
-                </div>
-            </a>
-        @endforeach
-    </x-slot:mobileList>
-
-    {{-- Estado vazio / sem resultados --}}
-    <x-slot:emptyState>
-        <div class="text-center py-5">
-            <h5>Nenhum Equipamento encontrado.</h5>
-            @if(request('search'))
-                <a href="{{ route('equipments.index') }}" class="d-block mt-2 small">Limpar busca</a>
-            @endif
+        {{-- HEADER SUPERIOR --}}
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div class="d-flex align-items-center gap-3">
+                <h2 class="fw-bold mb-0 fs-2">Equipamentos</h2>
+                <span class="text-muted fs-3 fw-light">({{ $equipments->total() }})</span>
+                <a href="{{ route('equipments.create') }}" class="btn btn-primary px-4 rounded-3 ms-2">
+                    <i class="bi bi-plus-lg me-1"></i> Novo Equipamento
+                </a>
+            </div>
         </div>
-    </x-slot:emptyState>
 
-</x-list-layout>
+        {{-- FILTRO + BUSCA --}}
+        <div class="row g-3 align-items-center justify-content-between mb-4">
+
+            <div class="col-12 col-md-auto">
+                <form action="{{ route('equipments.index') }}" method="GET">
+                    <div class="input-group bg-white border rounded-3 overflow-hidden">
+                        <span class="input-group-text bg-transparent border-0 pe-0 text-muted">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="search"
+                               name="search"
+                               value="{{ request('search') }}"
+                               class="form-control border-0 shadow-none ps-2"
+                               placeholder="Buscar equipamentos..."
+                               style="min-width: 250px;">
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- TABELA / LISTAGEM --}}
+        <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+            <div class="card-body p-0">
+
+                {{-- ESTADO VAZIO --}}
+                @if($equipments->isEmpty())
+                    <div class="text-center py-5">
+                        <div class="mb-3 text-muted">
+                            <i class="bi bi-inbox fs-1"></i>
+                        </div>
+                        <h5 class="fw-bold">Nenhum equipamento encontrado</h5>
+
+                        @if(request('search'))
+                            <p class="text-muted">Tente ajustar sua busca.</p>
+                            <a href="{{ route('equipments.index') }}"
+                               class="btn btn-outline-secondary btn-sm mt-2">
+                                Limpar busca
+                            </a>
+                        @endif
+                    </div>
+                @else
+
+                    {{-- TABELA --}}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="bg-light border-bottom">
+                                <tr class="text-muted small text-uppercase fw-bold">
+                                    <th class="py-3 ps-4" style="width: 60px;">#</th>
+                                    <th class="py-3">Equipamento</th>
+                                    <th class="py-3">Tipo</th>
+                                    <th class="py-3">Status</th>
+                                    <th class="py-3">Marca</th>
+                                    <th class="py-3 text-end pe-4">Ações</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                @foreach ($equipments as $equipment)
+                                    <tr style="cursor: pointer;"
+                                        onclick="window.location='{{ route('equipments.show', $equipment) }}'">
+
+                                        {{-- NUMERAÇÃO --}}
+                                        <td class="py-3 ps-4 fw-bold text-muted">
+                                            {{ $equipments->firstItem() + $loop->index }}
+                                        </td>
+
+                                        {{-- NOME --}}
+                                        <td class="py-3">
+                                            <div class="fw-bold text-truncate text-dark"
+                                                 style="max-width: 250px;"
+                                                 title="{{ $equipment->name }}">
+                                                {{ $equipment->name }}
+                                            </div>
+                                        </td>
+
+                                        {{-- TIPO --}}
+                                        <td class="py-3 text-secondary">
+                                            {{ $equipment->type->name ?? '—' }}
+                                        </td>
+
+                                        {{-- STATUS --}}
+                                        <td class="py-3">
+                                            @if($equipment->status)
+                                                <span class="badge rounded-pill 
+                                                    bg-{{ $equipment->status->color }} bg-opacity-10
+                                                    text-{{ $equipment->status->color }}
+                                                    border border-{{ $equipment->status->color }}">
+                                                    {{ $equipment->status->name }}
+                                                </span>
+                                            @else
+                                                <span class="text-muted">—</span>
+                                            @endif
+                                        </td>
+
+                                        {{-- MARCA --}}
+                                        <td class="py-3 text-secondary">
+                                            {{ $equipment->brand ?? '—' }}
+                                        </td>
+
+                                        {{-- AÇÕES --}}
+                                        <td class="py-3 text-end pe-4" onclick="event.stopPropagation();">
+                                            <div class="btn-group btn-group-sm opacity-75 hover-opacity-100">
+                                                <a href="{{ route('equipments.edit', $equipment) }}"
+                                                   class="btn btn-light text-primary border"
+                                                   title="Editar">
+                                                    <i class="bi bi-pencil-fill"></i>
+                                                </a>
+
+                                                <form action="{{ route('equipments.destroy', $equipment) }}"
+                                                      method="POST"
+                                                      class="d-inline"
+                                                      onsubmit="return confirm('Excluir este equipamento?')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit"
+                                                            class="btn btn-light text-danger border"
+                                                            title="Excluir">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {{-- PAGINAÇÃO --}}
+                    @if($equipments->hasPages())
+                        <div class="d-flex justify-content-end border-top p-3 bg-light">
+                            {{ $equipments->links() }}
+                        </div>
+                    @endif
+
+                @endif
+            </div>
+        </div>
+
+    </div>
+</x-app-layout>
