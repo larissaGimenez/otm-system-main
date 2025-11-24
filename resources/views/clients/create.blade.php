@@ -191,9 +191,9 @@
                 <div class="row mt-5">
                     <div class="col-md-6 offset-md-2 d-flex justify-content-between">
                          {{-- Botão Fake Data (Mantido para testes) --}}
-                        <button type="button" id="btn-fake-data" class="btn btn-outline-warning btn-sm">
+                        {{-- <button type="button" id="btn-fake-data" class="btn btn-outline-warning btn-sm">
                             <i class="bi bi-magic me-1"></i> Teste
-                        </button>
+                        </button> --}}
                         
                         <div>
                             <a href="{{ route('clients.index') }}" class="btn btn-outline-secondary me-2">
