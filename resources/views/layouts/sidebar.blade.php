@@ -1,3 +1,14 @@
+<style>
+    #content-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        overflow: hidden;
+        padding: 10px;
+    }
+</style>
+
 <nav id="sidebar" class="d-flex flex-column p-3 bg-white border-end shadow-sm">
     
     <ul class="nav nav-pills flex-column mb-auto">
