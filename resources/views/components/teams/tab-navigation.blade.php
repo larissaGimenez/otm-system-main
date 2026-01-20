@@ -20,13 +20,13 @@
             'icon' => 'bi bi-people-fill',
             'active' => false,
         ],
-        [
-            'id' => 'logs-tab',
-            'target' => 'logs-tab-pane',
-            'label' => 'Logs',
-            'icon' => 'bi bi-clock-history',
-            'active' => false,
-        ],
+        // [
+        //     'id' => 'logs-tab',
+        //     'target' => 'logs-tab-pane',
+        //     'label' => 'Logs',
+        //     'icon' => 'bi bi-clock-history',
+        //     'active' => false,
+        // ],
     ];
 @endphp
 

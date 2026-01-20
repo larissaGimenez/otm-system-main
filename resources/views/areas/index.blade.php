@@ -15,7 +15,6 @@
     <x-slot:tableHeader>
         <tr class="text-muted small">
             <th scope="col" class="py-3">NOME DA ÁREA</th>
-            <th scope="col" class="py-3">SLUG</th>
             <th scope="col" class="py-3">DESCRIÇÃO</th>
             <th scope="col" class="py-3 text-end">AÇÕES</th>
         </tr>
@@ -25,9 +24,6 @@
     @foreach ($areas as $area)
         <tr class="border-bottom" data-href="{{ route('areas.show', $area) }}">
             <td class="py-3">{{ $area->name }}</td>
-            <td class="py-3">
-                <code class="small">{{ $area->slug }}</code>
-            </td>
             <td class="py-3">{{ Str::limit($area->description, 50) }}</td>
             <td class="py-3 text-end">
                 <div class="btn-group btn-group-sm" role="group">

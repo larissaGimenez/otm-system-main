@@ -20,13 +20,13 @@
             'icon' => 'bi bi-images',
             'active' => false,
         ],
-        [
-            'id' => 'history-tab',
-            'target' => 'history-tab-pane',
-            'label' => 'Histórico',
-            'icon' => 'bi bi-clock-history',
-            'active' => false,
-        ],
+        // [
+        //     'id' => 'history-tab',
+        //     'target' => 'history-tab-pane',
+        //     'label' => 'Histórico',
+        //     'icon' => 'bi bi-clock-history',
+        //     'active' => false,
+        // ],
     ];
 @endphp
 

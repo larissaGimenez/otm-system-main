@@ -50,11 +50,11 @@
                         <i class="bi bi-collection-fill me-1"></i> Equipes ({{ $user->teams->count() }})
                     </button>
                 </li>
-                <li class="nav-item" role="presentation">
+                {{-- <li class="nav-item" role="presentation">
                     <button class="nav-link" id="history-tab" data-bs-toggle="pill" data-bs-target="#history-tab-pane" type="button" role="tab" aria-controls="history-tab-pane" aria-selected="false">
                         <i class="bi bi-clock-history me-1"></i> Histórico
                     </button>
-                </li>
+                </li> --}}
             </ul>
 
             {{-- CONTEÚDO DAS ABAS --}}

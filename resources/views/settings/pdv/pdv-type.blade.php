@@ -18,7 +18,6 @@
                         <thead class="bg-light">
                             <tr>
                                 <th class="ps-4 py-3">Nome</th>
-                                <th class="py-3">Slug</th>
                                 <th class="py-3">Uso</th>
                                 <th class="text-end pe-4 py-3">Ações</th>
                             </tr>
@@ -27,7 +26,6 @@
                             @forelse($types as $type)
                                 <tr>
                                     <td class="ps-4 fw-bold">{{ $type->name }}</td>
-                                    <td class="text-muted small">{{ $type->slug }}</td>
                                     <td>
                                         <span class="badge bg-light text-dark border">{{ $type->pdvs_count }} PDVs</span>
                                     </td>

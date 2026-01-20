@@ -15,7 +15,6 @@
                     <thead class="bg-light">
                         <tr>
                             <th class="ps-4 py-3">Nome</th>
-                            <th>Slug</th>
                             <th>Cor</th>
                             <th>Uso</th>
                             <th class="text-end pe-4">Ações</th>
@@ -25,7 +24,6 @@
                         @forelse($statuses as $status)
                             <tr>
                                 <td class="fw-bold ps-4">{{ $status->name }}</td>
-                                <td class="text-muted small">{{ $status->slug }}</td>
                                 <td>
                                     <span class="badge bg-{{ $status->color }}">{{ $status->name }}</span>
                                 </td>

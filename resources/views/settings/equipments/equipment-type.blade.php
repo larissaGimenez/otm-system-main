@@ -17,7 +17,6 @@
                     <thead class="bg-light">
                         <tr>
                             <th class="ps-4 py-3">Nome</th>
-                            <th>Slug</th>
                             <th>Uso</th>
                             <th class="text-end pe-4">Ações</th>
                         </tr>
@@ -26,7 +25,6 @@
                         @forelse($types as $type)
                             <tr>
                                 <td class="fw-bold ps-4">{{ $type->name }}</td>
-                                <td class="text-muted small">{{ $type->slug }}</td>
                                 <td>
                                     <span class="badge bg-light text-dark border">
                                         {{ $type->equipments_count }} equipamentos
