@@ -1,68 +1,160 @@
-<x-list-layout 
-    :collection="$areas"
-    :searchRoute="route('areas.index')"
-    :createRoute="route('areas.create')"
-    createText="Nova Área"
-    searchPlaceholder="Buscar por nome..."
-    deleteModalText="Tem certeza que deseja excluir esta área? Equipes associadas terão seu vínculo removido, mas não serão excluídas.">
-
-    {{-- Título principal da página --}}
+<x-app-layout>
     <x-slot:header>
-        Áreas Organizacionais
+        <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb breadcrumb-custom px-3 py-2">
+                <li class="breadcrumb-item">
+                    <a href="#" class="text-decoration-none"><i class="bi bi-house-door"></i> Home</a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Departamentos</li>
+            </ol>
+        </nav>
     </x-slot:header>
 
-    {{-- Cabeçalho da tabela para a visualização em desktop --}}
-    <x-slot:tableHeader>
-        <tr class="text-muted small">
-            <th scope="col" class="py-3">NOME DA ÁREA</th>
-            <th scope="col" class="py-3">DESCRIÇÃO</th>
-            <th scope="col" class="py-3 text-end">AÇÕES</th>
-        </tr>
-    </x-slot:tableHeader>
+    <div class="container-fluid">
+        <div class="bg-white shadow-sm rounded p-4">
 
-    {{-- Loop para gerar as linhas da tabela (visualização em desktop) --}}
-    @foreach ($areas as $area)
-        <tr class="border-bottom" data-href="{{ route('areas.show', $area) }}">
-            <td class="py-3">{{ $area->name }}</td>
-            <td class="py-3">{{ Str::limit($area->description, 50) }}</td>
-            <td class="py-3 text-end">
-                <div class="btn-group btn-group-sm" role="group">
-                    <a href="{{ route('areas.edit', $area) }}" class="btn btn-outline-primary" title="Editar">
-                        <i class="bi bi-pencil-fill"></i>
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    <h2 class="fw-bold mb-0 fs-3">Departamentos</h2>
+                    <a href="{{ route('areas.create') }}" class="btn btn-primary px-4 rounded-3 ms-2">
+                        <i class="bi bi-plus-lg me-1"></i> Criar um novo
                     </a>
-                    <button type="button" class="btn btn-outline-danger" 
-                            data-bs-toggle="modal" data-bs-target="#deleteModal" 
-                            data-action="{{ route('areas.destroy', $area) }}" 
-                            title="Excluir">
-                        <i class="bi bi-trash-fill"></i>
-                    </button>
                 </div>
-            </td>
-        </tr>
-    @endforeach
+            </div>
 
-    {{-- Loop para gerar os cards (visualização em mobile) --}}
-    <x-slot:mobileList>
-        @foreach ($areas as $area)
-            <a href="{{ route('areas.show', $area) }}" class="text-decoration-none text-dark">
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title mb-1">{{ $area->name }}</h5>
-                        <p class="card-text small text-muted">{{ Str::limit($area->description, 100) }}</p>
-                    </div>
+            <div class="row g-3 align-items-center justify-content-between mb-4">
+                <div class="col-12 col-md-auto">
+                    <ul class="nav nav-underline border-bottom-0">
+                        <li class="nav-item">
+                            <a class="nav-link {{ !request('search') ? 'active fw-bold text-dark' : 'text-muted' }}"
+                                href="{{ route('areas.index') }}">
+                                Todos <span class="small">({{ $areas->total() }})</span>
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-            </a>
-        @endforeach
-    </x-slot:mobileList>
 
-    {{-- Conteúdo para quando a busca não retorna resultados ou a tabela está vazia --}}
-    <x-slot:emptyState>
-        <div class="text-center py-5">
-            <h5>Nenhuma área encontrada.</h5>
-            @if(request('search'))
-                <a href="{{ route('areas.index') }}" class="d-block mt-2 small">Limpar busca</a>
-            @endif
+                <div class="col-12 col-md-auto">
+                    <form action="{{ route('areas.index') }}" method="GET">
+                        <div class="input-group bg-white border rounded-3 overflow-hidden">
+                            <span class="input-group-text bg-transparent border-0 pe-0 text-muted">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="search" name="search" value="{{ request('search') }}"
+                                class="form-control border-0 shadow-none ps-2" placeholder="Buscar por nome..."
+                                style="min-width: 250px;">
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card border-0 overflow-hidden">
+                <div class="card-body p-0">
+                    @if($areas->isEmpty())
+                        <div class="text-center py-5">
+                            <div class="mb-3 text-muted">
+                                <i class="bi bi-diagram-3 fs-1"></i>
+                            </div>
+                            <h5 class="fw-bold">Nenhum departamento encontrado</h5>
+                            @if(request('search'))
+                                <p class="text-muted">Tente ajustar seus filtros de busca.</p>
+                                <a href="{{ route('areas.index') }}" class="btn btn-outline-secondary btn-sm mt-2">Limpar
+                                    Filtros</a>
+                            @endif
+                        </div>
+                    @else
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light border-bottom">
+                                    <tr class="text-muted small fw-bold">
+                                        <th scope="col" class="py-3 ps-4">Nome</th>
+                                        <th scope="col" class="py-3">Descrição</th>
+                                        <th scope="col" class="py-3 text-end pe-4">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($areas as $area)
+                                        <tr style="cursor: pointer;"
+                                            onclick="window.location='{{ route('areas.show', $area) }}'">
+                                            <td class="py-3 ps-4">
+                                                <div class="fw-bold text-dark">{{ $area->name }}</div>
+                                            </td>
+
+                                            <td class="py-3">
+                                                <div class="text-secondary small text-truncate" style="max-width: 400px;">
+                                                    {{ $area->description ?? 'Sem descrição' }}
+                                                </div>
+                                            </td>
+
+                                            <td class="py-3 text-end" onclick="event.stopPropagation();">
+                                                <div class="d-flex justify-content-end gap-2">
+                                                    <a href="{{ route('areas.edit', $area) }}"
+                                                        class="btn btn-outline-primary btn-sm rounded-2 border-0" title="Editar"
+                                                        style="background-color: rgba(64, 128, 246, 0.05);">
+                                                        <i class="bi bi-pencil-fill"></i>
+                                                    </a>
+
+                                                    <button type="button"
+                                                        class="btn btn-outline-danger btn-sm rounded-2 border-0" title="Excluir"
+                                                        style="background-color: rgba(220, 53, 69, 0.05);"
+                                                        data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                                        data-action="{{ route('areas.destroy', $area) }}">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        @if($areas->hasPages())
+                            <div class="d-flex justify-content-end border-top p-3 bg-light">
+                                {{ $areas->links() }}
+                            </div>
+                        @endif
+                    @endif
+                </div>
+            </div>
         </div>
-    </x-slot:emptyState>
+    </div>
 
-</x-list-layout>
+    {{-- Modal de Exclusão (Mantendo a funcionalidade existente) --}}
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmar Exclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Tem certeza que deseja excluir este departamento? Equipes associadas terão seu vínculo removido, mas
+                    não serão excluídas.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form id="deleteForm" method="POST" action="">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="btn btn-danger">Sim, Excluir</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @push('scripts')
+        <script>
+            const deleteModal = document.getElementById('deleteModal');
+            if (deleteModal) {
+                deleteModal.addEventListener('show.bs.modal', function (event) {
+                    const button = event.relatedTarget;
+                    const action = button.getAttribute('data-action');
+                    const form = deleteModal.querySelector('#deleteForm');
+                    form.setAttribute('action', action);
+                });
+            }
+        </script>
+    @endpush
+</x-app-layout>

@@ -9,7 +9,7 @@
 
     <div class="card shadow-sm border-0">
         <div class="card-body">
-            
+
             <x-pdvs.context-header :pdv="$pdv" />
 
             <hr>
@@ -18,7 +18,7 @@
             <x-pdvs.tab-navigation :pdv="$pdv" :externalIdCount="$externalIdRecords->count()" />
 
             <div x-data class="tab-content" id="pdvs-details-tabContent">
-                
+
                 <x-tab-content-wrapper id="details-tab-pane" :active="true">
                     <x-pdvs.details :pdv="$pdv" />
                 </x-tab-content-wrapper>
@@ -36,11 +36,15 @@
                 <x-tab-content-wrapper id="gallery-tab-pane">
                     <x-pdvs.gallery :pdv="$pdv" />
                 </x-tab-content-wrapper>
-                
-                <x-tab-content-wrapper id="history-tab-pane">
-                    <x-pdvs.history :pdv="$pdv" />
+
+                <x-tab-content-wrapper id="maintenance-tab-pane">
+                    <x-pdvs.maintenance :pdv="$pdv" :maintenanceRequests="$maintenanceRequests" />
                 </x-tab-content-wrapper>
-                
+
+                <!-- <x-tab-content-wrapper id="history-tab-pane">
+                    <x-pdvs.history :pdv="$pdv" />
+                </x-tab-content-wrapper> -->
+
                 <x-tab-content-wrapper id="extids-tab-pane">
                     <x-pdvs.external-ids :pdv="$pdv" />
                 </x-tab-content-wrapper>
@@ -62,27 +66,27 @@
     @endforeach
 
     <x-slot name="scripts">
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            @if ($errors->any() && old('item_uuid') === $pdv->id)
-                const modalEl = document.getElementById('{{ $createModalId }}');
-                if (modalEl) {
-                    const modal = new bootstrap.Modal(modalEl);
-                    modal.show();
-                }
-            @endif
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                @if ($errors->any() && old('item_uuid') === $pdv->id)
+                    const modalEl = document.getElementById('{{ $createModalId }}');
+                    if (modalEl) {
+                        const modal = new bootstrap.Modal(modalEl);
+                        modal.show();
+                    }
+                @endif
 
             const hash = window.location.hash;
 
-            if (hash) {
-                const tabTrigger = document.querySelector(`button[data-bs-target="${hash}"]`);
+                if (hash) {
+                    const tabTrigger = document.querySelector(`button[data-bs-target="${hash}"]`);
 
-                if (tabTrigger) {
-                    const tab = new bootstrap.Tab(tabTrigger);
-                    tab.show();
+                    if (tabTrigger) {
+                        const tab = new bootstrap.Tab(tabTrigger);
+                        tab.show();
+                    }
                 }
-            }
-        });
-    </script>
-</x-slot>
+            });
+        </script>
+    </x-slot>
 </x-app-layout>

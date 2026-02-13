@@ -7,10 +7,44 @@
 
 // Define nossa cor primária personalizada
 $primary: #4080f6;
+$greycolor: #7a7a7a;
 
 // Define o separador do breadcrumb como '>' ANTES de importar o Bootstrap
-$breadcrumb-divider: quote(">");
+$breadcrumb-divider: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8'><path d='M2.5 0L1 1.5 3.5 4 1 6.5 2.5 8l4-4-4-4z' fill='#{$greycolor}'/></svg>");
 
+.breadcrumb-custom {
+    border-radius: 50px;       
+    display: inline-flex;     
+    
+    .breadcrumb-item {
+        display: flex;
+        align-items: center;
+
+        a {
+            color: $primary;
+            transition: all 0.2s;
+            &:hover {
+                color: darken($primary, 15%);
+                
+            }
+        }
+        
+        &.active {
+            color: #444444;
+        }
+    }
+
+    .breadcrumb-item a {
+    position: relative;
+    padding: 2px 4px;
+    border-radius: 4px;
+
+    &:hover {
+        background-color: rgba($primary, 0.1); 
+        color: $primary;
+    }
+}
+}
 
 // ===================================================================
 // 2. IMPORTAÇÃO DO BOOTSTRAP
@@ -25,7 +59,7 @@ $breadcrumb-divider: quote(">");
 html, body {
     height: 100vh;
     max-height: 100vh;
-    
+    background-color: #f8f9fa;
     margin: 0;
     padding: 0;
 }

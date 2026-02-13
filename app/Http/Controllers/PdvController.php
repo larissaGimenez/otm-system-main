@@ -35,10 +35,10 @@ class PdvController extends Controller
 
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', $search)
-                  ->orWhere('street', 'like', $search)
-                  ->orWhereHas('type', fn ($q) => $q->where('name', 'like', $search))
-                  ->orWhereHas('status', fn ($q) => $q->where('name', 'like', $search))
-                  ->orWhereHas('client', fn ($q) => $q->where('name', 'like', $search));
+                    ->orWhere('street', 'like', $search)
+                    ->orWhereHas('type', fn($q) => $q->where('name', 'like', $search))
+                    ->orWhereHas('status', fn($q) => $q->where('name', 'like', $search))
+                    ->orWhereHas('client', fn($q) => $q->where('name', 'like', $search));
             });
         }
 
@@ -52,7 +52,7 @@ class PdvController extends Controller
     {
         return view('pdvs.create', [
             'statuses' => PdvStatus::all(),
-            'types'    => PdvType::all(),
+            'types' => PdvType::all(),
             'initialClients' => Client::whereDoesntHave('pdvs')
                 ->orderBy('name')
                 ->limit(5)
@@ -63,14 +63,14 @@ class PdvController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'client_id'     => ['required', 'uuid', 'exists:clients,id'],
-            'name'          => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')],
-            'description'   => ['nullable', 'string'],
-            'pdv_type_id'   => ['nullable', 'exists:pdv_types,id'],
+            'client_id' => ['required', 'uuid', 'exists:clients,id'],
+            'name' => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')],
+            'description' => ['nullable', 'string'],
+            'pdv_type_id' => ['nullable', 'exists:pdv_types,id'],
             'pdv_status_id' => ['required', 'exists:pdv_statuses,id'],
-            'street'        => ['nullable', 'string', 'max:255'],
-            'number'        => ['nullable', 'string', 'max:50'],
-            'complement'    => ['nullable', 'string', 'max:255'],
+            'street' => ['nullable', 'string', 'max:255'],
+            'number' => ['nullable', 'string', 'max:50'],
+            'complement' => ['nullable', 'string', 'max:255'],
         ]);
 
         try {
@@ -84,7 +84,7 @@ class PdvController extends Controller
         } catch (\Throwable $e) {
             Log::error('Erro ao criar PDV: ' . $e->getMessage(), ['trace' => $e->getTrace()]);
             return back()->with('error', 'Erro ao cadastrar: ' . $e->getMessage())
-                         ->withInput();
+                ->withInput();
         }
     }
 
@@ -92,32 +92,40 @@ class PdvController extends Controller
     {
         $pdv->load(['equipments', 'status', 'type', 'client']);
 
+        // Buscar chamados de manutenção relacionados a este PDV
+        $maintenanceRequests = \App\Models\Request::where('pdv_id', $pdv->id)
+            ->where('type', \App\Enums\Request\RequestType::MANUTENCAO_PDV)
+            ->with(['closedBy', 'requester'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return view('pdvs.show', [
-            'pdv'                 => $pdv,
+            'pdv' => $pdv,
             'availableEquipments' => Equipment::whereDoesntHave('pdvs')->get(),
-            'externalIdRecords'   => ExternalId::forItem($pdv->id)->latest()->get(),
+            'externalIdRecords' => ExternalId::forItem($pdv->id)->latest()->get(),
+            'maintenanceRequests' => $maintenanceRequests,
         ]);
     }
 
     public function edit(Pdv $pdv): View
     {
         return view('pdvs.edit', [
-            'pdv'      => $pdv,
+            'pdv' => $pdv,
             'statuses' => PdvStatus::all(),
-            'types'    => PdvType::all(),
+            'types' => PdvType::all(),
         ]);
     }
 
     public function update(Request $request, Pdv $pdv): RedirectResponse
     {
         $validated = $request->validate([
-            'name'          => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')->ignore($pdv->id)],
-            'description'   => ['nullable', 'string'],
-            'pdv_type_id'   => ['nullable', 'exists:pdv_types,id'],
+            'name' => ['required', 'string', 'max:255', Rule::unique('pdvs', 'name')->ignore($pdv->id)],
+            'description' => ['nullable', 'string'],
+            'pdv_type_id' => ['nullable', 'exists:pdv_types,id'],
             'pdv_status_id' => ['required', 'exists:pdv_statuses,id'],
-            'street'        => ['nullable', 'string', 'max:255'],
-            'number'        => ['nullable', 'string', 'max:50'],
-            'complement'    => ['nullable', 'string', 'max:255'],
+            'street' => ['nullable', 'string', 'max:255'],
+            'number' => ['nullable', 'string', 'max:50'],
+            'complement' => ['nullable', 'string', 'max:255'],
         ]);
 
         try {
@@ -132,7 +140,7 @@ class PdvController extends Controller
         }
     }
 
-   public function destroy(Pdv $pdv): RedirectResponse
+    public function destroy(Pdv $pdv): RedirectResponse
     {
         try {
             $pdv->delete();
@@ -150,9 +158,9 @@ class PdvController extends Controller
     public function addMedia(Request $request, Pdv $pdv): RedirectResponse
     {
         $validated = $request->validate([
-            'photos'   => ['nullable', 'array'],
+            'photos' => ['nullable', 'array'],
             'photos.*' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
-            'videos'   => ['nullable', 'array'],
+            'videos' => ['nullable', 'array'],
             'videos.*' => ['mimetypes:video/mp4,video/avi,video/mpeg', 'max:20480'],
         ]);
 

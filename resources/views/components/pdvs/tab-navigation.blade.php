@@ -3,14 +3,13 @@
     'externalIdCount',
     // 'contractCount' => 0, // <-- REMOVIDO
 ])
-
 @php
     $equipmentCount = $pdv->equipments->count();
     $photoCount = is_array($pdv->photos) ? count($pdv->photos) : 0;
     $videoCount = is_array($pdv->videos) ? count($pdv->videos) : 0;
     $mediaTotalCount = $photoCount + $videoCount;
     // $fee = $pdv->activationFee; // <-- REMOVIDO
-    
+
     $tabs = [
         [
             'id' => 'details-tab',
@@ -19,11 +18,11 @@
             'icon' => 'bi bi-info-circle-fill',
             'active' => true,
         ],
-        
+
         // ABA DE CONTRATOS REMOVIDA
-        
+
         // ABA DE CUSTO DE IMPLANTAÇÃO REMOVIDA
-        
+
         [
             'id' => 'equipments-tab',
             'target' => 'equipments-tab-pane',
@@ -36,6 +35,13 @@
             'target' => 'gallery-tab-pane',
             'label' => "Galeria ({$mediaTotalCount})",
             'icon' => 'bi bi-images',
+            'active' => false,
+        ],
+        [
+            'id' => 'maintenance-tab',
+            'target' => 'maintenance-tab-pane',
+            'label' => 'Manutenções',
+            'icon' => 'bi bi-tools',
             'active' => false,
         ],
         // [

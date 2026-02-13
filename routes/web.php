@@ -33,7 +33,7 @@ use App\Http\Controllers\Settings\EquipmentStatusController;
 use App\Http\Controllers\Settings\EquipmentTypeController;
 
 Route::middleware('guest')->group(function () {
-    Route::get('/', fn () => redirect()->route('login'));
+    Route::get('/', fn() => redirect()->route('login'));
 });
 
 Route::middleware('auth')->group(function () {
@@ -54,10 +54,10 @@ Route::middleware('auth')->group(function () {
 
         Route::post('/{client}/pdvs', [ClientController::class, 'attachPdv'])->name('pdvs.attach');
         Route::delete('/{client}/pdvs/{pdv}', [ClientController::class, 'detachPdv'])->name('pdvs.detach');
-       
+
         Route::post('{client}/activation-fee', [ActivationFeeController::class, 'store'])->name('activation-fee.store');
         Route::put('{client}/activation-fee', [ActivationFeeController::class, 'update'])->name('activation-fee.update');
-        Route::delete('{client}/activation-fee', [ActivationFeeController::class, 'destroy'])->name('activation-fee.destroy');       
+        Route::delete('{client}/activation-fee', [ActivationFeeController::class, 'destroy'])->name('activation-fee.destroy');
         Route::post('{client}/activation-fee/installments', [ActivationFeeController::class, 'renegotiate'])->name('activation-fee.installments.store');
         Route::delete('{client}/activation-fee/installments/{installment}', [ActivationFeeController::class, 'destroyFeeInstallment'])->name('activation-fee.installments.destroy');
 
@@ -69,9 +69,9 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::prefix('contacts/{contact}')->name('contacts.')->group(function () {
-            Route::put('/', [ContactController::class, 'update'])->name('update');
-            Route::delete('/', [ContactController::class, 'destroy'])->name('destroy');
-        });
+        Route::put('/', [ContactController::class, 'update'])->name('update');
+        Route::delete('/', [ContactController::class, 'destroy'])->name('destroy');
+    });
 
     Route::prefix('pontos-de-venda')->name('pdvs.')->group(function () {
         Route::get('/', [PdvController::class, 'index'])->name('index');
@@ -101,7 +101,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/pdvs/check-name', [PdvController::class, 'checkName'])
         ->name('pdvs.check-name');
-        Route::get('/clients/search', [ClientController::class, 'search'])
+    Route::get('/clients/search', [ClientController::class, 'search'])
         ->name('clients.search');
 
     Route::prefix('equipamentos')->name('equipments.')->group(function () {
@@ -135,10 +135,19 @@ Route::middleware('auth')->group(function () {
         Route::put('/{request}', [RequestController::class, 'update'])->name('update');
         Route::delete('/{request}', [RequestController::class, 'destroy'])->name('destroy');
 
-        Route::prefix('/{request}/assignees')->name('assignees.')->group(function () {
-            Route::post('/', [RequestController::class, 'assignUsers'])->name('attach');
-            Route::delete('/{user}', [RequestController::class, 'unassignUser'])->name('detach');
-        });
+        // Ações de status
+        Route::patch('/{request}/iniciar', [RequestController::class, 'start'])->name('start');
+        Route::get('/{request}/fechar', [RequestController::class, 'showCloseForm'])->name('close-form');
+        Route::post('/{request}/fechar', [RequestController::class, 'close'])->name('close');
+
+        // Arquivamento
+        Route::get('/arquivados/listar', [RequestController::class, 'archived'])->name('archived');
+        Route::post('/{request}/arquivar', [RequestController::class, 'archive'])->name('archive');
+        Route::post('/{request}/restaurar', [RequestController::class, 'unarchive'])->name('unarchive');
+
+        // Atribuição de responsáveis
+        Route::post('/{request}/atribuir', [RequestController::class, 'assignUsers'])->name('assignees.attach');
+        Route::delete('/{request}/responsaveis/{user}', [RequestController::class, 'unassignUser'])->name('assignees.detach');
     });
 
     Route::prefix('areas')->name('areas.')->group(function () {
@@ -223,4 +232,4 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('condominiums/{condominium}/contacts/{contact}', [CondominiumController::class, 'destroyContact'])->name('condominiums.contacts.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

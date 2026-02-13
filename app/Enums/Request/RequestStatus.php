@@ -6,17 +6,17 @@ enum RequestStatus: string
 {
     case OPEN = 'open';
     case IN_PROGRESS = 'in_progress';
-    case RESOLVED = 'resolved';
-    case CLOSED = 'closed';
+    case LONG_SOLUTION = 'long_solution';
+    case COMPLETED = 'completed';
     case CANCELED = 'canceled';
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::OPEN => 'Aberto',
-            self::IN_PROGRESS => 'Em andamento',
-            self::RESOLVED => 'Resolvido',
-            self::CLOSED => 'Fechado',
+            self::OPEN => 'Em Aberto',
+            self::IN_PROGRESS => 'Em Andamento',
+            self::LONG_SOLUTION => 'Solução Longa',
+            self::COMPLETED => 'Concluído',
             self::CANCELED => 'Cancelado',
         };
     }
@@ -24,11 +24,11 @@ enum RequestStatus: string
     public function colors(): string
     {
         return match ($this) {
-            self::OPEN => 'primary',        // Azul para 'Aberto'
-            self::IN_PROGRESS => 'warning',    // Amarelo para 'Em andamento'
-            self::RESOLVED => 'success',    // Verde para 'Resolvido'
-            self::CLOSED => 'secondary',    // Cinza para 'Fechado'
-            self::CANCELED => 'danger',     // Vermelho para 'Cancelado'
+            self::OPEN => 'primary',           // Azul para 'Em Aberto'
+            self::IN_PROGRESS => 'info',       // Ciano para 'Em Andamento'
+            self::LONG_SOLUTION => 'warning',  // Amarelo para 'Solução Longa'
+            self::COMPLETED => 'success',      // Verde para 'Concluído'
+            self::CANCELED => 'danger',        // Vermelho para 'Cancelado'
         };
     }
 }
