@@ -44,25 +44,19 @@ class AreaController extends Controller
 
         $validated['slug'] = Str::slug($validated['name']);
 
-        Area::create($validated);
+        $area = Area::create($validated);
 
-        return redirect()->route('areas.index')->with('success', 'Área criada com sucesso.');
+        return redirect()
+            ->route('areas.show', $area) 
+            ->with('success', 'Área criada com sucesso.');
     }
 
-    /**
-     * O MÉTODO PRINCIPAL PARA NOSSA ARQUITETURA.
-     *
-     * Prepara todos os dados necessários para a view de detalhes.
-     */
     public function show(Area $area): View
     {
-        // 1. Pré-carrega o relacionamento de times para evitar N+1 queries na view.
         $area->load('teams');
 
-        // 2. Busca os times que ainda não têm uma área associada, para o modal "Adicionar Time".
         $availableTeams = Team::whereNull('area_id')->orderBy('name')->get();
 
-        // 3. Envia todos os dados para a view.
         return view('areas.show', [
             'area' => $area,
             'availableTeams' => $availableTeams,
@@ -85,7 +79,9 @@ class AreaController extends Controller
 
         $area->update($validated);
 
-        return redirect()->route('areas.index')->with('success', 'Área atualizada com sucesso.');
+        return redirect()
+            ->route('areas.show', $area)
+            ->with('success', 'Área atualizada com sucesso.');
     }
 
     public function destroy(Area $area): RedirectResponse

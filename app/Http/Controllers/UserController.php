@@ -62,20 +62,29 @@ class UserController extends Controller
         ]);
 
         try {
-            $validatedData['password'] = Hash::make($request->password);
-            $validatedData['cpf'] = preg_replace('/\D/', '', $request->cpf);
-            $validatedData['phone'] = preg_replace('/\D/', '', $request->phone);
-            $validatedData['postal_code'] = preg_replace('/\D/', '', $request->postal_code);
+            $data = $validatedData;
 
-            User::create($validatedData);
+            $data['password'] = Hash::make($request->password);
+            $data['cpf'] = preg_replace('/\D/', '', $request->cpf) ?: null;
+            $data['phone'] = preg_replace('/\D/', '', $request->phone) ?: null;
+            $data['postal_code'] = preg_replace('/\D/', '', $request->postal_code) ?: null;
 
-            return redirect()->route('management.users.index')
-                             ->with('success', 'Usuário cadastrado com sucesso.');
+            foreach ($data as $key => $value) {
+                if ($value === '') {
+                    $data[$key] = null;
+                }
+            }
+
+            $user = User::create($data);
+
+            return redirect()->route('management.users.show', $user->id)
+                            ->with('success', 'Usuário cadastrado com sucesso.');
+
         } catch (\Exception $e) {
             Log::error('Falha ao criar usuário: ' . $e->getMessage());
             return redirect()->back()
-                             ->with('error', 'Ocorreu um erro ao cadastrar o usuário. Tente novamente.')
-                             ->withInput();
+                            ->with('error', 'Erro ao cadastrar: ' . $e->getMessage())
+                            ->withInput();
         }
     }
 
@@ -116,24 +125,33 @@ class UserController extends Controller
                 $user->restore();
             }
 
-            if (!empty($validatedData['password'])) {
-                $validatedData['password'] = Hash::make($validatedData['password']);
+            $data = $validatedData;
+
+            if (!empty($data['password'])) {
+                $data['password'] = Hash::make($data['password']);
             } else {
-                unset($validatedData['password']);
+                unset($data['password']);
             }
 
-            $validatedData['cpf'] = preg_replace('/\D/', '', $request->cpf);
-            $validatedData['phone'] = preg_replace('/\D/', '', $request->phone);
-            $validatedData['postal_code'] = preg_replace('/\D/', '', $request->postal_code);
+            $data['cpf'] = preg_replace('/\D/', '', $request->cpf) ?: null;
+            $data['phone'] = preg_replace('/\D/', '', $request->phone) ?: null;
+            $data['postal_code'] = preg_replace('/\D/', '', $request->postal_code) ?: null;
 
-            $user->update($validatedData);
+            foreach ($data as $key => $value) {
+                if ($value === '') {
+                    $data[$key] = null;
+                }
+            }
 
-            return redirect()->route('management.users.index')
+            $user->update($data);
+
+            return redirect()->route('management.users.show', $user->id)
                             ->with('success', 'Usuário atualizado com sucesso.');
+
         } catch (\Exception $e) {
             Log::error('Falha ao atualizar usuário: ' . $e->getMessage());
             return redirect()->back()
-                            ->with('error', 'Ocorreu um erro ao salvar as alterações. Tente novamente.')
+                            ->with('error', 'Erro ao atualizar: ' . $e->getMessage())
                             ->withInput();
         }
     }
