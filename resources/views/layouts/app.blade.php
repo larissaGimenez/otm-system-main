@@ -19,7 +19,6 @@
             overflow: hidden;
         }
 
-        /* Container principal do app */
         #app {
             height: 100%;
             width: 100%;
@@ -27,12 +26,10 @@
             flex-direction: column;
         }
 
-        /* Navigation (se houver) */
         #app > nav {
             flex-shrink: 0;
         }
 
-        /* Wrapper da aplicação */
         .wrapper {
             flex: 1;
             display: flex;
@@ -41,7 +38,6 @@
             width: 100%;
         }
 
-        /* Sidebar */
         #sidebar {
             width: 280px;
             flex-shrink: 0;
@@ -54,7 +50,6 @@
             margin-left: -280px;
         }
 
-        /* Content Wrapper */
         #content-wrapper {
             flex: 1;
             display: flex;
@@ -63,19 +58,16 @@
             overflow: hidden;
         }
 
-        /* Header */
         #content-wrapper > header {
             flex-shrink: 0;
         }
 
-        /* Main - Área que pode rolar */
         #content-wrapper > main {
             flex: 1;
             overflow: auto;
             min-height: 0;
         }
 
-        /* Estilos da Sidebar */
         #sidebar .nav-link:not(.active):hover {
             background-color: #e9ecef;
         }
@@ -100,6 +92,25 @@
         #sidebar .nav-link-sub.active {
             color: #0d6efd; 
             font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+        #sidebar {
+            width: 100% !important; 
+            position: fixed;
+            z-index: 1040; 
+            height: 100vh;
+            margin-left: 0; 
+            transition: margin-left 0.3s ease-in-out;
+        }
+
+        .sidebar-toggled #sidebar {
+            margin-left: -100% !important;
+        }
+
+        body:not(.sidebar-toggled) {
+            overflow: hidden;
+        }
         }
     </style>
 @livewireStyles
@@ -156,5 +167,37 @@
     </script>
 @livewireScripts
     @stack('scripts')
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        function adjustSidebarForMobile() {
+            if (window.innerWidth < 768) {
+                // No seu sistema, para ESCONDER, o body PRECISA da classe 'sidebar-toggled'
+                document.body.classList.add('sidebar-toggled');
+
+                // Opcional: Fecha também os submenus internos para não ocuparem espaço
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) {
+                    const openSubmenus = sidebar.querySelectorAll('.collapse.show');
+                    openSubmenus.forEach(submenu => submenu.classList.remove('show'));
+                    
+                    const toggles = sidebar.querySelectorAll('.dropdown-toggle');
+                    toggles.forEach(btn => {
+                        btn.classList.add('collapsed');
+                        btn.setAttribute('aria-expanded', 'false');
+                    });
+                }
+            } else {
+                // No Desktop, se você quiser que ele nasça aberto sempre:
+                // document.body.classList.remove('sidebar-toggled');
+            }
+        }
+
+        adjustSidebarForMobile();
+        
+        // Se girar o celular ou redimensionar a janela
+        window.addEventListener('resize', adjustSidebarForMobile);
+    });
+</script>
 </body>
 </html>
