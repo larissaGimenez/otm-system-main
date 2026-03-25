@@ -25,13 +25,12 @@
 
         @if (Auth::user()->hasAnyRole(['admin', 'manager', 'staff']))
             <div class="px-2 mb-2 small text-uppercase fw-bold text-muted">Operacional</div>
-
             <li class="nav-item mb-1">
                 <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('clients.*') ? '' : 'collapsed' }} {{ request()->routeIs('clients.*') ? 'active text-white' : '' }}"
                     style="{{ request()->routeIs('clients.*') ? 'background-color: var(--bs-primary);' : '' }}"
                     href="#clientSubmenu" data-bs-toggle="collapse" role="button"
                     aria-expanded="{{ request()->routeIs('clients.*') ? 'true' : 'false' }}">
-                    <i class="bi bi-people-fill me-2"></i> Clientes
+                    <i class="bi bi-people-fill me-2"></i> <span>Clientes</span>
                 </a>
                 <div class="collapse {{ request()->routeIs('clients.*') ? 'show' : '' }}" id="clientSubmenu">
                     <ul class="nav flex-column ps-4 pt-1">
@@ -56,7 +55,7 @@
                     style="{{ request()->routeIs('pdvs.*') ? 'background-color: var(--bs-primary);' : '' }}"
                     href="#pdvSubmenu" data-bs-toggle="collapse" role="button"
                     aria-expanded="{{ request()->routeIs('pdvs.*') ? 'true' : 'false' }}">
-                    <i class="bi bi-shop me-2"></i> Pontos de Venda
+                    <i class="bi bi-shop me-2"></i> <span>Pontos de Venda</span>
                 </a>
                 <div class="collapse {{ request()->routeIs('pdvs.*') ? 'show' : '' }}" id="pdvSubmenu">
                     <ul class="nav flex-column ps-4 pt-1">
@@ -73,6 +72,27 @@
                 </div>
             </li>
 
+            <li class="nav-item mb-1">
+                <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('equipments.*') ? '' : 'collapsed' }} {{ request()->routeIs('equipments.*') ? 'active text-white' : '' }}"
+                    style="{{ request()->routeIs('equipments.*') ? 'background-color: var(--bs-primary);' : '' }}"
+                    href="#equipamentosSubmenu" data-bs-toggle="collapse" role="button"
+                    aria-expanded="{{ request()->routeIs('equipments.*') ? 'true' : 'false' }}">
+                    <i class="bi bi-hdd-stack-fill me-2"></i> Equipamentos
+                </a>
+                <div class="collapse {{ request()->routeIs('equipments.*') ? 'show' : '' }}" id="equipamentosSubmenu">
+                    <ul class="nav flex-column ps-4 pt-1">
+                        <li class="nav-item"><a href="{{ route('equipments.index') }}"
+                                class="nav-link text-dark small py-1 {{ request()->routeIs('equipments.index') ? 'fw-bold' : '' }}">Listar</a>
+                        </li>
+                        <li class="nav-item"><a href="{{ route('equipments.create') }}"
+                                class="nav-link text-dark small py-1 {{ request()->routeIs('equipments.create') ? 'fw-bold' : '' }}">Criar
+                                um novo</a></li>
+                        <li class="nav-item"><a href="{{ route('settings.equipments.index') }}"
+                                class="nav-link text-dark small py-1 {{ request()->routeIs('settings.equipments.*') ? 'fw-bold' : '' }}">Configurações</a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
 
 
             <li class="nav-item mb-1">
@@ -168,30 +188,7 @@
                 </div>
             </li>
 
-            <hr class="text-secondary-emphasis">
-            <div class="px-2 mb-2 small text-uppercase fw-bold text-muted">Configurações</div>
 
-            <li class="nav-item mb-1">
-                <a class="nav-link text-dark dropdown-toggle {{ request()->routeIs('equipments.*') ? '' : 'collapsed' }} {{ request()->routeIs('equipments.*') ? 'active text-white' : '' }}"
-                    style="{{ request()->routeIs('equipments.*') ? 'background-color: var(--bs-primary);' : '' }}"
-                    href="#equipamentosSubmenu" data-bs-toggle="collapse" role="button"
-                    aria-expanded="{{ request()->routeIs('equipments.*') ? 'true' : 'false' }}">
-                    <i class="bi bi-hdd-stack-fill me-2"></i> Equipamentos
-                </a>
-                <div class="collapse {{ request()->routeIs('equipments.*') ? 'show' : '' }}" id="equipamentosSubmenu">
-                    <ul class="nav flex-column ps-4 pt-1">
-                        <li class="nav-item"><a href="{{ route('equipments.index') }}"
-                                class="nav-link text-dark small py-1 {{ request()->routeIs('equipments.index') ? 'fw-bold' : '' }}">Listar</a>
-                        </li>
-                        <li class="nav-item"><a href="{{ route('equipments.create') }}"
-                                class="nav-link text-dark small py-1 {{ request()->routeIs('equipments.create') ? 'fw-bold' : '' }}">Criar
-                                um novo</a></li>
-                        <li class="nav-item"><a href="{{ route('settings.equipments.index') }}"
-                                class="nav-link text-dark small py-1 {{ request()->routeIs('settings.equipments.*') ? 'fw-bold' : '' }}">Configurações</a>
-                        </li>
-                    </ul>
-                </div>
-            </li>
         @endif
     </ul>
 
