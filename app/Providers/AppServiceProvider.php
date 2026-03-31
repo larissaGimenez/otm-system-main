@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Str;
+use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,6 +18,8 @@ class AppServiceProvider extends ServiceProvider
   
     public function boot(): void
     {
+        Paginator::useBootstrapFive();
+        
         Blueprint::macro('uuidPrimary', function (string $name = 'id') {
             return $this->uuid($name)->primary();
         });

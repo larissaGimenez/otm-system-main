@@ -31,7 +31,7 @@
             'rows' => [
                 ['label' => 'Banco', 'value' => $client->bank?->getLabel()],
                 ['label' => 'Agência', 'value' => $client->agency],
-                ['label' => 'Conta', 'value' => $client->account],
+                ['label' => 'Conta', 'value' => $client->account . ($client->account_digit ? '-' . $client->account_digit : '')],
                 ['label' => 'Tipo PIX', 'value' => $client->pix_type?->getLabel()],
                 ['label' => 'Chave PIX', 'value' => $client->pix_key],
             ],
