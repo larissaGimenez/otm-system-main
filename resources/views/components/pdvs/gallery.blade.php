@@ -22,14 +22,12 @@
         ->map(function ($videoPath, $index) use ($pdv) {
             return [
                 'url' => 'storage/' . $videoPath,
-                // CORREÇÃO: Alterado de 'video' para 'videos' (plural) para corresponder à rota
                 'destroyUrl' => route('pdvs.media.destroy', [$pdv, 'videos', $index]),
             ];
         })
         ->all();
 @endphp
 
-{{-- Chama o componente de apresentação com os dados corrigidos --}}
 <x-ui.gallery-panel
     :photos="$formattedPhotos"
     :videos="$formattedVideos"

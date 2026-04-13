@@ -53,8 +53,7 @@ class PdvController extends Controller
         return view('pdvs.create', [
             'statuses' => PdvStatus::all(),
             'types' => PdvType::all(),
-            'initialClients' => Client::whereDoesntHave('pdvs')
-                ->orderBy('name')
+            'initialClients' => Client::orderBy('name')
                 ->limit(5)
                 ->get(['id', 'name']),
         ]);
@@ -159,7 +158,7 @@ class PdvController extends Controller
     {
         $validated = $request->validate([
             'photos' => ['nullable', 'array'],
-            'photos.*' => ['image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
+            'photos.*' => ['image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
             'videos' => ['nullable', 'array'],
             'videos.*' => ['mimetypes:video/mp4,video/avi,video/mpeg', 'max:20480'],
         ]);

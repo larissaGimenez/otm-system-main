@@ -232,4 +232,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::delete('condominiums/{condominium}/contacts/{contact}', [CondominiumController::class, 'destroyContact'])->name('condominiums.contacts.destroy');
 });
 
+Route::patch('clients/{id}/restore', [ClientController::class, 'restore'])->name('clients.restore');
+
 require __DIR__ . '/auth.php';

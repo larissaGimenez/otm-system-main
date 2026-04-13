@@ -15,19 +15,21 @@
         })
         ->all();
 
-    $formattedVideos = collect(is_array($equipment->videos) ? $equipment->videos : [])
-        ->map(function ($videoPath, $index) use ($equipment) {
-            return [
-                'url' => 'storage/' . $videoPath,
-                'destroyUrl' => route('equipments.media.destroy', [$equipment, 'videos', $index]),
-            ];
-        })
-        ->all();
+    // $formattedVideos = collect(is_array($equipment->videos) ? $equipment->videos : [])
+    //     ->map(function ($videoPath, $index) use ($equipment) {
+    //         return [
+    //             'url' => 'storage/' . $videoPath,
+    //             'destroyUrl' => route('equipments.media.destroy', [$equipment, 'videos', $index]),
+    //         ];
+    //     })
+    //     ->all();
 @endphp
 
 <x-ui.gallery-panel
     :photos="$formattedPhotos"
-    :videos="$formattedVideos"
+    :videos="[]"
     :storeUrl="$storeUrl"
     entityName="Equipamento" 
 />
+
+<!-- :videos="$formattedVideos" -->

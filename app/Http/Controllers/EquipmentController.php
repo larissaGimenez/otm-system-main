@@ -24,12 +24,12 @@ class EquipmentController extends Controller
 
             $query->where(function ($q) use ($term) {
                 $q->where('name', 'like', $term)
-                  ->orWhere('brand', 'like', $term)
-                  ->orWhere('model', 'like', $term)
-                  ->orWhere('serial_number', 'like', $term)
-                  ->orWhere('asset_tag', 'like', $term)
-                  ->orWhereHas('type', fn($t) => $t->where('name', 'like', $term))
-                  ->orWhereHas('status', fn($s) => $s->where('name', 'like', $term));
+                    ->orWhere('brand', 'like', $term)
+                    ->orWhere('model', 'like', $term)
+                    ->orWhere('serial_number', 'like', $term)
+                    ->orWhere('asset_tag', 'like', $term)
+                    ->orWhereHas('type', fn($t) => $t->where('name', 'like', $term))
+                    ->orWhereHas('status', fn($s) => $s->where('name', 'like', $term));
             });
         }
 
@@ -41,7 +41,7 @@ class EquipmentController extends Controller
     public function create(): View
     {
         return view('equipments.create', [
-            'types'    => EquipmentType::orderBy('name')->get(),
+            'types' => EquipmentType::orderBy('name')->get(),
             'statuses' => EquipmentStatus::orderBy('name')->get(),
         ]);
     }
@@ -49,16 +49,26 @@ class EquipmentController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name'               => ['required', 'string', 'max:50', 'unique:equipments,name'],
-            'equipment_type_id'  => ['required', 'exists:equipment_types,id'],
-            'equipment_status_id'=> ['required', 'exists:equipment_statuses,id'],
-            'description'        => ['nullable', 'string', 'max:500'],
-            'brand'              => ['nullable', 'string', 'max:255'],
-            'model'              => ['nullable', 'string', 'max:255'],
-            'serial_number'      => ['nullable', 'string', 'max:255', 'unique:equipments,serial_number'],
-            'asset_tag'          => ['nullable', 'string', 'max:255', 'unique:equipments,asset_tag'],
-            'photos'             => ['nullable', 'array'],
-            'photos.*'           => ['image', 'max:2048'],
+            'name' => ['required', 'string', 'max:50'],
+            'equipment_type_id' => ['required', 'exists:equipment_types,id'],
+            'equipment_status_id' => ['required', 'exists:equipment_statuses,id'],
+            'description' => ['nullable', 'string', 'max:500'],
+            'brand' => ['nullable', 'string', 'max:255'],
+            'model' => ['nullable', 'string', 'max:255'],
+            'serial_number' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('equipments')->whereNull('deleted_at')
+            ],
+            'asset_tag' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('equipments')->whereNull('deleted_at')
+            ],
+            'photos' => ['nullable', 'array'],
+            'photos.*' => ['image', 'max:2048'],
         ]);
 
         try {
@@ -70,7 +80,7 @@ class EquipmentController extends Controller
                 $validated['photos'] = $photos;
             }
 
-            $validated['slug'] = Str::slug($validated['name']);
+            $validated['slug'] = Str::slug($validated['name']) . '-' . Str::random(4);
 
             Equipment::create($validated);
 
@@ -93,27 +103,52 @@ class EquipmentController extends Controller
     {
         return view('equipments.edit', [
             'equipment' => $equipment,
-            'types'     => EquipmentType::orderBy('name')->get(),
-            'statuses'  => EquipmentStatus::orderBy('name')->get(),
+            'types' => EquipmentType::orderBy('name')->get(),
+            'statuses' => EquipmentStatus::orderBy('name')->get(),
         ]);
     }
 
     public function update(Request $request, Equipment $equipment): RedirectResponse
     {
         $validated = $request->validate([
-            'name'               => ['required', 'string', 'max:50', Rule::unique('equipments', 'name')->ignore($equipment->id)],
-            'equipment_type_id'  => ['required', 'exists:equipment_types,id'],
-            'equipment_status_id'=> ['required', 'exists:equipment_statuses,id'],
-            'description'        => ['nullable', 'string', 'max:500'],
-            'brand'              => ['nullable', 'string', 'max:255'],
-            'model'              => ['nullable', 'string', 'max:255'],
-            'serial_number'      => ['nullable', 'string', 'max:255', Rule::unique('equipments', 'serial_number')->ignore($equipment->id)],
-            'asset_tag'          => ['nullable', 'string', 'max:255', Rule::unique('equipments', 'asset_tag')->ignore($equipment->id)],
-            'photos'             => ['nullable', 'array'],
-            'photos.*'           => ['image', 'max:2048'],
+            'name' => [
+                'required',
+                'string',
+                'max:50',
+                Rule::unique('equipments', 'name')
+                    ->ignore($equipment->id)
+                    ->whereNull('deleted_at')
+            ],
+            'equipment_type_id' => ['required', 'exists:equipment_types,id'],
+            'equipment_status_id' => ['required', 'exists:equipment_statuses,id'],
+            'description' => ['nullable', 'string', 'max:500'],
+            'brand' => ['nullable', 'string', 'max:255'],
+            'model' => ['nullable', 'string', 'max:255'],
+            'serial_number' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('equipments', 'serial_number')
+                    ->ignore($equipment->id)
+                    ->whereNull('deleted_at')
+            ],
+            'asset_tag' => [
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('equipments', 'asset_tag')
+                    ->ignore($equipment->id)
+                    ->whereNull('deleted_at')
+            ],
+            'photos' => ['nullable', 'array'],
+            'photos.*' => ['image', 'max:2048'],
         ]);
 
         try {
+            if ($equipment->name !== $validated['name']) {
+                $validated['slug'] = Str::slug($validated['name']) . '-' . Str::random(4);
+            }
+
             if ($request->hasFile('photos')) {
                 $existing = $equipment->photos ?? [];
                 foreach ($request->file('photos') as $photo) {
@@ -150,9 +185,9 @@ class EquipmentController extends Controller
     public function storeMedia(Request $request, Equipment $equipment): RedirectResponse
     {
         $validated = $request->validate([
-            'photos'   => ['nullable', 'array'],
+            'photos' => ['nullable', 'array'],
             'photos.*' => ['image', 'max:4096'], // até 4MB
-            'videos'   => ['nullable', 'array'],
+            'videos' => ['nullable', 'array'],
             'videos.*' => ['mimetypes:video/mp4,video/quicktime,video/x-msvideo,video/mpeg', 'max:204800'], // até 200MB
         ]);
 
@@ -179,7 +214,7 @@ class EquipmentController extends Controller
 
             return back()->with('success', 'Mídia adicionada com sucesso.');
         } catch (\Throwable $e) {
-            Log::error('Falha ao adicionar mídia ao equipamento: '.$e->getMessage());
+            Log::error('Falha ao adicionar mídia ao equipamento: ' . $e->getMessage());
             return back()->with('error', 'Erro ao enviar mídia.');
         }
     }

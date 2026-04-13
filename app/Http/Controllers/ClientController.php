@@ -6,7 +6,7 @@ use App\Models\Pdv;
 use App\Models\Client;
 
 use App\Enums\Client\ClientType;
-use App\Enums\General\GeneralBanks;  
+use App\Enums\General\GeneralBanks;
 use App\Enums\General\GeneralPixType;
 
 use Illuminate\Support\Str;
@@ -24,11 +24,15 @@ class ClientController extends Controller
     {
         $query = Client::query();
 
+        if ($request->input('status') === 'archived') {
+            $query->onlyTrashed();
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                ->orWhere('cnpj', 'like', "%{$search}%");
+                    ->orWhere('cnpj', 'like', "%{$search}%");
             });
         }
 
@@ -37,18 +41,18 @@ class ClientController extends Controller
         }
 
         $clients = $query->orderBy('name')->paginate(10)->withQueryString();
-        
-        $types = ClientType::cases(); 
+
+        $types = ClientType::cases();
 
         return view('clients.index', compact('clients', 'types'));
     }
 
-    public function create(): View  
+    public function create(): View
     {
         return view('clients.create', [
-            'types'     => ClientType::cases(),
-            'banks'     => GeneralBanks::cases(),
-            'pixTypes'  => GeneralPixType::cases(),
+            'types' => ClientType::cases(),
+            'banks' => GeneralBanks::cases(),
+            'pixTypes' => GeneralPixType::cases(),
         ]);
     }
 
@@ -65,12 +69,12 @@ class ClientController extends Controller
             'neighborhood' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:255',
             'state' => 'nullable|string|size:2',
-            'bank'     => ['nullable', Rule::in(array_column(GeneralBanks::cases(), 'value'))],
-            'agency'   => 'nullable|string|max:20',
-            'account'  => 'nullable|string|max:20',
+            'bank' => ['nullable', Rule::in(array_column(GeneralBanks::cases(), 'value'))],
+            'agency' => 'nullable|string|max:20',
+            'account' => 'nullable|string|max:20',
             'account_digit' => 'nullable|string|max:2',
             'pix_type' => ['nullable', Rule::in(array_column(GeneralPixType::cases(), 'value'))],
-            'pix_key'  => 'nullable|string|max:255',
+            'pix_key' => 'nullable|string|max:255',
         ]);
 
         Client::create($validated);
@@ -81,17 +85,17 @@ class ClientController extends Controller
     public function show(Client $client): View
     {
         $client->load([
-            'pdvs' => fn ($q) => $q->orderBy('name'),
-            'contracts' => fn ($q) => $q->with('monthlySales')->orderByDesc('signed_at'),
-            'activationFee.installments' => fn ($q) => $q->orderBy('installment_number'),
-            'contacts' => fn ($q) => $q->orderBy('name'),
+            'pdvs' => fn($q) => $q->orderBy('name'),
+            'contracts' => fn($q) => $q->with('monthlySales')->orderByDesc('signed_at'),
+            'activationFee.installments' => fn($q) => $q->orderBy('installment_number'),
+            'contacts' => fn($q) => $q->orderBy('name'),
         ])->loadCount(['pdvs', 'contracts', 'contacts']);
 
         $availablePdvs = Pdv::whereNull('client_id')->orderBy('name')->get();
 
-        $pdvCount          = $client->pdvs_count;      
-        $contractCount     = $client->contracts_count;  
-        $contactCount    = $client->contacts_count;
+        $pdvCount = $client->pdvs_count;
+        $contractCount = $client->contracts_count;
+        $contactCount = $client->contacts_count;
         $installmentsCount = $client->activationFee?->installments()->count() ?? 0;
 
         return view('clients.show', compact(
@@ -108,10 +112,10 @@ class ClientController extends Controller
     public function edit(Client $client): View
     {
         return view('clients.edit', [
-            'client'    => $client,
-            'types'     => ClientType::cases(),
-            'banks'     => GeneralBanks::cases(),
-            'pixTypes'  => GeneralPixType::cases(),
+            'client' => $client,
+            'types' => ClientType::cases(),
+            'banks' => GeneralBanks::cases(),
+            'pixTypes' => GeneralPixType::cases(),
         ]);
     }
 
@@ -128,12 +132,12 @@ class ClientController extends Controller
             'neighborhood' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:255',
             'state' => 'nullable|string|size:2',
-            'bank'     => ['nullable', Rule::in(array_column(GeneralBanks::cases(), 'value'))],
-            'agency'   => 'nullable|string|max:20',
-            'account'  => 'nullable|string|max:20',
+            'bank' => ['nullable', Rule::in(array_column(GeneralBanks::cases(), 'value'))],
+            'agency' => 'nullable|string|max:20',
+            'account' => 'nullable|string|max:20',
             'account_digit' => 'nullable|string|max:2',
             'pix_type' => ['nullable', Rule::in(array_column(GeneralPixType::cases(), 'value'))],
-            'pix_key'  => 'nullable|string|max:255',
+            'pix_key' => 'nullable|string|max:255',
         ]);
 
         $client->update($validated);
@@ -145,6 +149,12 @@ class ClientController extends Controller
     {
         $client->delete();
         return redirect()->route('clients.index')->with('success', 'Client deleted successfully.');
+    }
+
+    public function restore($id): RedirectResponse
+    {
+        Client::withTrashed()->findOrFail($id)->restore();
+        return back()->with('success', 'Cliente reativado com sucesso!');
     }
 
     public function attachPdv(Request $request, Client $client): RedirectResponse
@@ -183,8 +193,7 @@ class ClientController extends Controller
     {
         $search = $request->get('q');
 
-        $query = Client::query()
-            ->whereDoesntHave('pdvs'); // excluir clientes já usados
+        $query = Client::query();
 
         if ($search) {
             $query->where('name', 'like', "%{$search}%");
